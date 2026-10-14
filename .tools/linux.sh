@@ -113,6 +113,30 @@ install_linux() {
         export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
         install_go_dev_packages "go"
         ;;
+      java)
+        local adoptium_codename
+        adoptium_codename="$(linux_ubuntu_codename)"
+        if [[ -z "$adoptium_codename" ]]; then
+          echo "Unable to determine the Debian or Ubuntu release codename for the Adoptium repository." >&2
+          return 1
+        fi
+
+        install_apt_pkg_if_missing "ca-certificates" "ca-certificates"
+        install_apt_pkg_if_missing "curl" "curl"
+        install_apt_pkg_if_missing "gpg" "gpg"
+        if [[ ! -f /etc/apt/keyrings/adoptium.gpg ]]; then
+          $SUDO install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | $SUDO gpg --dearmor --yes -o /etc/apt/keyrings/adoptium.gpg
+        fi
+        $SUDO chmod a+r /etc/apt/keyrings/adoptium.gpg
+        printf 'deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb %s main\n' "$adoptium_codename" | $SUDO tee /etc/apt/sources.list.d/adoptium.list >/dev/null
+        if [[ -n "${SUDO:-}" ]]; then
+          $SUDO apt-get update
+        else
+          apt-get update
+        fi
+        install_apt_pkg_if_missing "temurin-25-jdk" "temurin-25-jdk"
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

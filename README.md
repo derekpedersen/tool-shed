@@ -48,6 +48,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [gpg](gpg) | GPG | GNU Privacy Guard | GPG key generation and signing setup. | [GnuPG](https://gnupg.org/) |
 | [helm](helm) | Helm | Helm package manager | Helm chart helpers, release shortcuts, and version stamping tools. | [Helm](https://helm.sh/) |
 | [identity](identity) | ID | Identity setup | Combined identity/bootstrap helpers for Git, SSH, and GPG setup. | [Identity management](https://en.wikipedia.org/wiki/Identity_management) |
+| [java](java) | Java | Eclipse Temurin JDK 25 | Java 25 developer toolchain with the Java runtime and compiler. | [Eclipse Temurin](https://adoptium.net/) |
 | [jq](jq) | jq | jq JSON processor | Lightweight JSON parsing and filtering from the shell. | [jq](https://jqlang.github.io/jq/) |
 | [kafka](kafka) | Kafka | Apache Kafka | Kafka broker install and local data platform helpers. | [Kafka](https://kafka.apache.org/) |
 | [kubectl](kubectl) | kubectl | Kubernetes CLI | Kubernetes administration and cluster troubleshooting helpers. | [kubectl](https://kubernetes.io/docs/reference/kubectl/) |
@@ -183,7 +184,7 @@ The uninstall flow mirrors the install pattern: it is explicit, target-based, an
 - full (default): base developer setup + cloud CLIs + local data/service tooling
 - cloud: base setup + kubernetes/docker/cloud CLIs and JSON/YAML helpers
 - services: local data/service tooling only (postgres, redis, mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka)
-- ai: base setup + AI-oriented Python/Go packages and full Node package profile
+- ai: base setup, including Temurin JDK 25, + AI-oriented Python/Go packages and full Node package profile
 
 For language-by-language tool selection, run the guided root installer:
 

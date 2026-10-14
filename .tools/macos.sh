@@ -102,6 +102,9 @@ install_mac() {
         export PATH="$PATH:/usr/local/go/bin:/opt/homebrew/bin:$HOME/go/bin"
         install_go_dev_packages "go"
         ;;
+      java)
+        install_brew_cask_if_missing "temurin@25"
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

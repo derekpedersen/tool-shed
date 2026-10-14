@@ -23,6 +23,7 @@ FULL_BUNDLE=(
   nvm
   node
   golang
+  java
   kubectl
   helm
   docker
@@ -88,6 +89,7 @@ AI_BUNDLE=(
   nvm
   node
   golang
+  java
   kubectl
   helm
   docker
@@ -622,6 +624,9 @@ canonical_tool_name() {
   local tool="$1"
 
   case "$tool" in
+    jdk)
+      echo "java"
+      ;;
     kubernetes-cli)
       echo "kubectl"
       ;;

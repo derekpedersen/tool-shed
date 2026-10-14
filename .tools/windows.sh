@@ -91,6 +91,9 @@ install_windows() {
         install_winget_if_missing "GoLang.Go" "go"
         install_go_dev_packages "go"
         ;;
+      java)
+        install_winget_if_missing "EclipseAdoptium.Temurin.25.JDK" "javac"
+        ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
         ;;
@@ -193,6 +196,9 @@ uninstall_windows() {
       ;;
     golang)
       remove_winget_if_present "GoLang.Go"
+      ;;
+    java)
+      remove_winget_if_present "EclipseAdoptium.Temurin.25.JDK"
       ;;
     kubectl|kubernetes-cli)
       remove_winget_if_present "Kubernetes.kubectl"

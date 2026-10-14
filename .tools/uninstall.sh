@@ -51,17 +51,18 @@ Bundle targets:
   full  = base tools + cloud CLIs + data/service tools
   cloud = base tools + kubernetes/docker/cloud CLIs + jq/yq
   services = local data/service tools only
-  ai    = base tools + AI package profiles for python/go/node
+  ai    = base tools (including Java) + AI package profiles for python/go/node
 
 Canonical tools:
-  git, gpg, curl, wget, unzip, python3, nvm, node, golang, kubectl, helm, docker,
+  git, gpg, curl, wget, unzip, python3, nvm, node, golang, java, kubectl, helm, docker,
   dotnetcore, vscode, gcloud, aws, eksctl, az, doctl, jq, yq, postgres, redis,
   mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka, git-config,
   git-signing, ssh-key, identity
 
 Legacy aliases (supported):
   kubernetes-cli->kubectl, google-cloud->gcloud, awscli->aws,
-  azure|azure-cli->az, digitalocean|doks->doctl, dotnet->dotnetcore, code->vscode
+  azure|azure-cli->az, digitalocean|doks->doctl, dotnet->dotnetcore, code->vscode,
+  jdk->java
 
 Use canonical names in scripts and examples.
 
@@ -238,6 +239,21 @@ remove_homebrew_package() {
   brew uninstall --force "$pkg" || true
 }
 
+remove_homebrew_cask() {
+  local pkg="$1"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "DRY RUN: brew uninstall --cask --force $pkg"
+    return 0
+  fi
+
+  if ! command -v brew >/dev/null 2>&1 || ! brew list --cask --versions "$pkg" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  brew uninstall --cask --force "$pkg" || true
+}
+
 uninstall_tool() {
   local tool="$1"
 
@@ -344,6 +360,15 @@ uninstall_tool() {
             rm -rf /usr/local/go
           fi
         fi
+      fi
+      ;;
+    java)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      elif [[ "$OS" == "Darwin" ]]; then
+        remove_homebrew_cask "temurin@25"
+      else
+        remove_apt_package "temurin-25-jdk" "temurin-25-jdk"
       fi
       ;;
     helm)

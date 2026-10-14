@@ -37,4 +37,11 @@ build:
 test:
 	@bash -lc 'set -euo pipefail; \
 		for bundle in $(BUNDLES); do echo "Testing install bundle: $$bundle"; bash ./.tools/install.sh "$$bundle" --dry-run; done; \
-		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done'
+		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done; \
+		echo "Testing Java aliases"; \
+		bash ./.tools/install.sh java --dry-run; \
+		bash ./.tools/install.sh jdk --dry-run; \
+		bash ./.tools/uninstall.sh java --dry-run; \
+		bash ./.tools/uninstall.sh jdk --dry-run; \
+		echo "Testing Java macOS uninstall mapping"; \
+		TOOL_SHED_OS_OVERRIDE=Darwin TOOLS_UNINSTALL_MODULE_INTERNAL=1 bash ./.tools/uninstall.sh java --dry-run'
