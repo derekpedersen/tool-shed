@@ -134,6 +134,9 @@ install_mac() {
       scala)
         install_scala_cli_if_missing
         ;;
+      r)
+        install_brew_formula_if_missing "r" "R"
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

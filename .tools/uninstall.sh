@@ -51,10 +51,10 @@ Bundle targets:
   full  = base tools + cloud CLIs + data/service tools
   cloud = base tools + kubernetes/docker/cloud CLIs + jq/yq
   services = local data/service tools only
-  ai    = base tools (including Java, Scala, C/C++, and Rust) + AI package profiles for python/go/node
+  ai    = base tools (including R, Java, Scala, C/C++, and Rust) + AI package profiles for python/go/node
 
 Canonical tools:
-  git, gpg, curl, wget, unzip, python3, nvm, node, golang, cpp, rust, java, scala, kubectl, helm, docker,
+  git, gpg, curl, wget, unzip, python3, r, nvm, node, golang, cpp, rust, java, scala, kubectl, helm, docker,
   dotnetcore, vscode, gcloud, aws, eksctl, az, doctl, jq, yq, postgres, redis,
   mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka, git-config,
   git-signing, ssh-key, identity
@@ -62,7 +62,7 @@ Canonical tools:
 Legacy aliases (supported):
   kubernetes-cli->kubectl, google-cloud->gcloud, awscli->aws,
   azure|azure-cli->az, digitalocean|doks->doctl, dotnet->dotnetcore, code->vscode,
-  jdk->java, rustup->rust, c++->cpp, scala-cli->scala
+  jdk->java, rustup->rust, c++->cpp, scala-cli->scala, R|r-lang->r
 
 Use canonical names in scripts and examples.
 
@@ -392,6 +392,15 @@ uninstall_tool() {
         else
           scala-cli uninstall
         fi
+      fi
+      ;;
+    r)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      elif [[ "$OS" == "Darwin" ]]; then
+        remove_homebrew_package "r"
+      else
+        remove_apt_package "r-base" "R"
       fi
       ;;
     helm)

@@ -148,6 +148,9 @@ install_linux() {
         install_apt_pkg_if_missing "curl" "curl"
         install_scala_cli_if_missing
         ;;
+      r)
+        install_apt_pkg_if_missing "r-base" "R"
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

@@ -59,6 +59,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [nvm](nvm) | NVM | Node Version Manager | Node version switching and environment management. | [nvm](https://github.com/nvm-sh/nvm) |
 | [postgres](postgres) | PG | PostgreSQL | PostgreSQL database install and local stack support. | [PostgreSQL](https://www.postgresql.org/) |
 | [python3](python3) | Py3 | Python 3 | Python 3 runtime setup and related developer helpers. | [Python](https://www.python.org/) |
+| [r](r) | R | R interpreter | Statistical computing and graphics runtime; CRAN packages remain project-managed. | [R Project](https://www.r-project.org/) |
 | [rabbitmq](rabbitmq) | RabbitMQ | RabbitMQ | AMQP broker install and local messaging toolkit support. | [RabbitMQ](https://www.rabbitmq.com/) |
 | [redis](redis) | Redis | Redis | In-memory data store and cache setup for local apps. | [Redis](https://redis.io/) |
 | [rust](rust) | Rust | Rust stable toolchain | Per-user stable Rust toolchain managed by rustup. | [Rust](https://www.rust-lang.org/) |
@@ -184,10 +185,10 @@ The uninstall flow mirrors the install pattern: it is explicit, target-based, an
 
 ## Tool bundles
 
-- full (default): base developer setup + Scala, C/C++, and Rust toolchains + cloud CLIs + local data/service tooling
+- full (default): base developer setup + R, Scala, C/C++, and Rust toolchains + cloud CLIs + local data/service tooling
 - cloud: base setup + kubernetes/docker/cloud CLIs and JSON/YAML helpers
 - services: local data/service tooling only (postgres, redis, mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka)
-- ai: base setup, including Temurin JDK 25, Scala, C/C++, and Rust, + AI-oriented Python/Go packages and full Node package profile
+- ai: base setup, including R, Temurin JDK 25, Scala, C/C++, and Rust, + AI-oriented Python/Go packages and full Node package profile
 
 For language-by-language tool selection, run the guided root installer:
 

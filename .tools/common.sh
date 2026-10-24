@@ -20,6 +20,7 @@ FULL_BUNDLE=(
   wget
   unzip
   python3
+  r
   nvm
   node
   golang
@@ -89,6 +90,7 @@ AI_BUNDLE=(
   wget
   unzip
   python3
+  r
   nvm
   node
   golang
@@ -671,6 +673,9 @@ canonical_tool_name() {
   local tool="$1"
 
   case "$tool" in
+    R|r-lang)
+      echo "r"
+      ;;
     scala-cli)
       echo "scala"
       ;;

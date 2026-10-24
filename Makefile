@@ -38,6 +38,16 @@ test:
 	@bash -lc 'set -euo pipefail; \
 		for bundle in $(BUNDLES); do echo "Testing install bundle: $$bundle"; bash ./.tools/install.sh "$$bundle" --dry-run; done; \
 		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done; \
+		echo "Testing R aliases and bundle order"; \
+		source ./.tools/common.sh; \
+		[[ "$$(canonical_tool_name R)" == r ]]; \
+		[[ "$$(canonical_tool_name r-lang)" == r ]]; \
+		assert_python_before_r() { local items=("$$@"); local python_index=-1; local r_index=-1; local index; for index in "$${!items[@]}"; do case "$${items[$$index]}" in python3) python_index=$$index ;; r) r_index=$$index ;; esac; done; [[ $$python_index -ge 0 && $$python_index -lt $$r_index ]]; }; \
+		assert_python_before_r "$${FULL_BUNDLE[@]}"; \
+		assert_python_before_r "$${AI_BUNDLE[@]}"; \
+		[[ " $${CLOUD_BUNDLE[*]} " != *" r "* && " $${SERVICES_BUNDLE[*]} " != *" r "* ]]; \
+		echo "Testing R module dry runs"; \
+		for tool in r R r-lang; do bash ./.tools/install.sh "$$tool" --dry-run; bash ./.tools/uninstall.sh "$$tool" --dry-run; done; \
 		echo "Testing Scala alias and bundle order"; \
 		source ./.tools/common.sh; \
 		[[ "$$(canonical_tool_name scala-cli)" == scala ]]; \

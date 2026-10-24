@@ -118,6 +118,9 @@ install_windows() {
       scala)
         install_winget_if_missing "VirtusLab.ScalaCLI" "scala-cli"
         ;;
+      r)
+        install_winget_if_missing "RProject.R" "R"
+        ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
         ;;
@@ -232,6 +235,9 @@ uninstall_windows() {
       ;;
     scala)
       remove_winget_if_present "VirtusLab.ScalaCLI"
+      ;;
+    r)
+      remove_winget_if_present "RProject.R"
       ;;
     kubectl|kubernetes-cli)
       remove_winget_if_present "Kubernetes.kubectl"
