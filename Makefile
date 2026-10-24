@@ -38,6 +38,18 @@ test:
 	@bash -lc 'set -euo pipefail; \
 		for bundle in $(BUNDLES); do echo "Testing install bundle: $$bundle"; bash ./.tools/install.sh "$$bundle" --dry-run; done; \
 		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done; \
+		echo "Testing Scala alias and bundle order"; \
+		source ./.tools/common.sh; \
+		[[ "$$(canonical_tool_name scala-cli)" == scala ]]; \
+		assert_java_before_scala() { local items=("$$@"); local java_index=-1; local scala_index=-1; local index; for index in "$${!items[@]}"; do case "$${items[$$index]}" in java) java_index=$$index ;; scala) scala_index=$$index ;; esac; done; [[ $$java_index -ge 0 && $$java_index -lt $$scala_index ]]; }; \
+		assert_java_before_scala "$${FULL_BUNDLE[@]}"; \
+		assert_java_before_scala "$${AI_BUNDLE[@]}"; \
+		[[ " $${CLOUD_BUNDLE[*]} " != *" scala "* && " $${SERVICES_BUNDLE[*]} " != *" scala "* ]]; \
+		echo "Testing Scala module dry runs"; \
+		bash ./.tools/install.sh scala --dry-run; \
+		bash ./.tools/install.sh scala-cli --dry-run; \
+		bash ./.tools/uninstall.sh scala --dry-run; \
+		bash ./.tools/uninstall.sh scala-cli --dry-run; \
 		echo "Testing Rust/C++ aliases and bundle order"; \
 		source ./.tools/common.sh; \
 		[[ "$$(canonical_tool_name rustup)" == rust ]]; \

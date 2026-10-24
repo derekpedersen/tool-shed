@@ -62,6 +62,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [rabbitmq](rabbitmq) | RabbitMQ | RabbitMQ | AMQP broker install and local messaging toolkit support. | [RabbitMQ](https://www.rabbitmq.com/) |
 | [redis](redis) | Redis | Redis | In-memory data store and cache setup for local apps. | [Redis](https://redis.io/) |
 | [rust](rust) | Rust | Rust stable toolchain | Per-user stable Rust toolchain managed by rustup. | [Rust](https://www.rust-lang.org/) |
+| [scala](scala) | Scala | Scala CLI | Scala 3 REPL, compiler, runner, and package tool. | [Scala](https://www.scala-lang.org/) |
 | [ssh-key](ssh-key) | SSH | SSH key bootstrap | SSH key generation and installation for remote auth. | [OpenSSH](https://www.openssh.com/) |
 | [unzip](unzip) | Unzip | Unzip utility | Zip extraction helper and wrappers for local tooling. | [Info-ZIP UnZip](https://www.info-zip.org/UnZip.html) |
 | [vscode](vscode) | VS Code | Visual Studio Code | Editor bootstrap and local environment setup for VS Code. | [VS Code](https://code.visualstudio.com/) |
@@ -183,10 +184,10 @@ The uninstall flow mirrors the install pattern: it is explicit, target-based, an
 
 ## Tool bundles
 
-- full (default): base developer setup + C/C++ and Rust toolchains + cloud CLIs + local data/service tooling
+- full (default): base developer setup + Scala, C/C++, and Rust toolchains + cloud CLIs + local data/service tooling
 - cloud: base setup + kubernetes/docker/cloud CLIs and JSON/YAML helpers
 - services: local data/service tooling only (postgres, redis, mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka)
-- ai: base setup, including Temurin JDK 25, C/C++, and Rust, + AI-oriented Python/Go packages and full Node package profile
+- ai: base setup, including Temurin JDK 25, Scala, C/C++, and Rust, + AI-oriented Python/Go packages and full Node package profile
 
 For language-by-language tool selection, run the guided root installer:
 
