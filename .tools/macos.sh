@@ -42,7 +42,7 @@ install_mac() {
 
   for pkg in "$@"; do
     case "$pkg" in
-      cpp|rust|nvm|node|curl)
+      cpp|rust|scala|nvm|node|curl)
         ;;
       *)
         requires_brew=true
@@ -130,6 +130,9 @@ install_mac() {
         ;;
       rust)
         install_rustup_if_missing
+        ;;
+      scala)
+        install_scala_cli_if_missing
         ;;
       nvm)
         echo "Installing nvm..."

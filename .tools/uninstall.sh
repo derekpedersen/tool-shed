@@ -383,6 +383,17 @@ uninstall_tool() {
     rust)
       echo "Rustup, Rust toolchains, and Cargo data are user-managed and were left intact."
       ;;
+    scala)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      elif command -v scala-cli >/dev/null 2>&1; then
+        if [[ "$DRY_RUN" == true ]]; then
+          echo "DRY RUN: scala-cli uninstall"
+        else
+          scala-cli uninstall
+        fi
+      fi
+      ;;
     helm)
       if [[ "$PLATFORM" == "windows" ]]; then
         uninstall_windows "$tool"

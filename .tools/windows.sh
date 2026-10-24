@@ -115,6 +115,9 @@ install_windows() {
           ensure_rustup_default
         fi
         ;;
+      scala)
+        install_winget_if_missing "VirtusLab.ScalaCLI" "scala-cli"
+        ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
         ;;
@@ -226,6 +229,9 @@ uninstall_windows() {
       ;;
     rust)
       echo "Rustup, Rust toolchains, and Cargo data are user-managed and were left intact."
+      ;;
+    scala)
+      remove_winget_if_present "VirtusLab.ScalaCLI"
       ;;
     kubectl|kubernetes-cli)
       remove_winget_if_present "Kubernetes.kubectl"

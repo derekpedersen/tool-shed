@@ -26,6 +26,7 @@ FULL_BUNDLE=(
   cpp
   rust
   java
+  scala
   kubectl
   helm
   docker
@@ -94,6 +95,7 @@ AI_BUNDLE=(
   cpp
   rust
   java
+  scala
   kubectl
   helm
   docker
@@ -184,6 +186,20 @@ install_rustup_if_missing() {
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
   export PATH="$HOME/.cargo/bin:$PATH"
   ensure_rustup_default
+}
+
+install_scala_cli_if_missing() {
+  if command -v scala-cli >/dev/null 2>&1; then
+    echo "Scala CLI is already installed."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install Scala CLI." >&2
+    return 1
+  fi
+
+  curl -fsSL https://scala-cli.virtuslab.org/get | sh
 }
 
 install_python_dev_packages() {
@@ -655,6 +671,9 @@ canonical_tool_name() {
   local tool="$1"
 
   case "$tool" in
+    scala-cli)
+      echo "scala"
+      ;;
     rustup)
       echo "rust"
       ;;
