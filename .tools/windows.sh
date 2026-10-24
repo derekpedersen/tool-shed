@@ -49,6 +49,21 @@ install_winget_with_override_if_missing() {
   winget install --id "$package_id" --exact --silent --disable-interactivity --accept-source-agreements --accept-package-agreements --override "$override_args"
 }
 
+install_winget_msstore_if_missing() {
+  local package_id="$1"
+  local binary_name="$2"
+
+  if command -v "$binary_name" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if winget list --exact --id "$package_id" --source msstore >/dev/null 2>&1; then
+    return 0
+  fi
+
+  winget install --id "$package_id" --exact --source msstore --silent --disable-interactivity --accept-source-agreements --accept-package-agreements
+}
+
 remove_winget_if_present() {
   local package_id="$1"
 
@@ -120,6 +135,9 @@ install_windows() {
         ;;
       r)
         install_winget_if_missing "RProject.R" "R"
+        ;;
+      julia)
+        install_winget_msstore_if_missing "9NJNWW8PVKMN" "julia"
         ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
@@ -238,6 +256,9 @@ uninstall_windows() {
       ;;
     r)
       remove_winget_if_present "RProject.R"
+      ;;
+    julia)
+      echo "Juliaup, Julia channels, and the Julia depot are user-managed and were left intact."
       ;;
     kubectl|kubernetes-cli)
       remove_winget_if_present "Kubernetes.kubectl"

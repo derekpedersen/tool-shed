@@ -38,6 +38,25 @@ test:
 	@bash -lc 'set -euo pipefail; \
 		for bundle in $(BUNDLES); do echo "Testing install bundle: $$bundle"; bash ./.tools/install.sh "$$bundle" --dry-run; done; \
 		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done; \
+		echo "Testing Julia alias and opt-in placement"; \
+		source ./.tools/common.sh; \
+		[[ "$$(canonical_tool_name juliaup)" == julia ]]; \
+		[[ "$$(resolve_target_tools julia juliaup)" == julia ]]; \
+		[[ " $${FULL_BUNDLE[*]} " != *" julia "* && " $${AI_BUNDLE[*]} " != *" julia "* && " $${CLOUD_BUNDLE[*]} " != *" julia "* && " $${SERVICES_BUNDLE[*]} " != *" julia "* ]]; \
+		julia_uninstall_output=$$(TOOLS_UNINSTALL_MODULE_INTERNAL=1 bash ./.tools/uninstall.sh julia --dry-run); \
+		[[ "$$julia_uninstall_output" == *"left intact"* ]]; \
+		echo "Testing Julia module dry runs"; \
+		bash ./.tools/install.sh julia --dry-run; \
+		bash ./.tools/install.sh juliaup --dry-run; \
+		bash ./.tools/uninstall.sh julia --dry-run; \
+		bash ./.tools/uninstall.sh juliaup --dry-run; \
+		echo "Testing Julia Store winget source"; \
+		source ./.tools/windows.sh; \
+		winget_calls=(); \
+		winget() { winget_calls+=("$$*"); [[ "$$1" != list ]]; }; \
+		install_winget_msstore_if_missing "9NJNWW8PVKMN" "julia-test-missing"; \
+		[[ $${#winget_calls[@]} -eq 2 ]]; \
+		[[ "$${winget_calls[1]}" == *"--source msstore"* ]]; \
 		echo "Testing R aliases and bundle order"; \
 		source ./.tools/common.sh; \
 		[[ "$$(canonical_tool_name R)" == r ]]; \

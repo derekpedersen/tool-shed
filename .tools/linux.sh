@@ -151,6 +151,10 @@ install_linux() {
       r)
         install_apt_pkg_if_missing "r-base" "R"
         ;;
+      julia)
+        install_apt_pkg_if_missing "curl" "curl"
+        install_juliaup_if_missing
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

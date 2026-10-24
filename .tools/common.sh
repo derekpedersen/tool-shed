@@ -204,6 +204,28 @@ install_scala_cli_if_missing() {
   curl -fsSL https://scala-cli.virtuslab.org/get | sh
 }
 
+install_juliaup_if_missing() {
+  export PATH="$HOME/.juliaup/bin:$PATH"
+
+  if command -v juliaup >/dev/null 2>&1; then
+    echo "Juliaup is already installed; preserving its existing channels and default."
+    return 0
+  fi
+
+  if command -v julia >/dev/null 2>&1; then
+    echo "Julia is already installed without Juliaup; leaving the existing installation unchanged."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install Juliaup." >&2
+    return 1
+  fi
+
+  curl -fsSL https://install.julialang.org | sh -s -- --yes --default-channel release
+  export PATH="$HOME/.juliaup/bin:$PATH"
+}
+
 install_python_dev_packages() {
   local python_cmd="${1:-python3}"
   local package_profile="${PYTHON_PACKAGE_PROFILE:-full}"
@@ -673,6 +695,9 @@ canonical_tool_name() {
   local tool="$1"
 
   case "$tool" in
+    juliaup)
+      echo "julia"
+      ;;
     R|r-lang)
       echo "r"
       ;;

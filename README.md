@@ -50,6 +50,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [helm](helm) | Helm | Helm package manager | Helm chart helpers, release shortcuts, and version stamping tools. | [Helm](https://helm.sh/) |
 | [identity](identity) | ID | Identity setup | Combined identity/bootstrap helpers for Git, SSH, and GPG setup. | [Identity management](https://en.wikipedia.org/wiki/Identity_management) |
 | [java](java) | Java | Eclipse Temurin JDK 25 | Java 25 developer toolchain with the Java runtime and compiler. | [Eclipse Temurin](https://adoptium.net/) |
+| [julia](julia) | Julia | Juliaup-managed Julia | Stable Julia runtime and version manager; existing user channels and packages are preserved on uninstall. | [Julia](https://julialang.org/) |
 | [jq](jq) | jq | jq JSON processor | Lightweight JSON parsing and filtering from the shell. | [jq](https://jqlang.github.io/jq/) |
 | [kafka](kafka) | Kafka | Apache Kafka | Kafka broker install and local data platform helpers. | [Kafka](https://kafka.apache.org/) |
 | [kubectl](kubectl) | kubectl | Kubernetes CLI | Kubernetes administration and cluster troubleshooting helpers. | [kubectl](https://kubernetes.io/docs/reference/kubectl/) |
