@@ -38,6 +38,17 @@ install_winget_if_missing() {
   winget install --id "$package_id" --exact --silent --disable-interactivity --accept-source-agreements --accept-package-agreements
 }
 
+install_winget_with_override_if_missing() {
+  local package_id="$1"
+  local override_args="$2"
+
+  if winget list --exact --id "$package_id" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  winget install --id "$package_id" --exact --silent --disable-interactivity --accept-source-agreements --accept-package-agreements --override "$override_args"
+}
+
 remove_winget_if_present() {
   local package_id="$1"
 
@@ -93,6 +104,16 @@ install_windows() {
         ;;
       java)
         install_winget_if_missing "EclipseAdoptium.Temurin.25.JDK" "javac"
+        ;;
+      cpp)
+        install_winget_with_override_if_missing "Microsoft.VisualStudio.2022.BuildTools" "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.26100"
+        ;;
+      rust)
+        export PATH="$HOME/.cargo/bin:$PATH"
+        install_winget_if_missing "Rustlang.Rustup" "rustup"
+        if command -v rustup >/dev/null 2>&1; then
+          ensure_rustup_default
+        fi
         ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
@@ -199,6 +220,12 @@ uninstall_windows() {
       ;;
     java)
       remove_winget_if_present "EclipseAdoptium.Temurin.25.JDK"
+      ;;
+    cpp)
+      remove_winget_if_present "Microsoft.VisualStudio.2022.BuildTools"
+      ;;
+    rust)
+      echo "Rustup, Rust toolchains, and Cargo data are user-managed and were left intact."
       ;;
     kubectl|kubernetes-cli)
       remove_winget_if_present "Kubernetes.kubectl"

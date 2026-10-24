@@ -37,9 +37,22 @@ install_brew_cask_if_missing() {
 
 install_mac() {
   BREW_SKIPPED_COUNT=0
+  local pkg
+  local requires_brew=false
+
+  for pkg in "$@"; do
+    case "$pkg" in
+      cpp|rust|nvm|node|curl)
+        ;;
+      *)
+        requires_brew=true
+        ;;
+    esac
+  done
+
   echo "Detected macOS"
 
-  if ! command -v brew >/dev/null 2>&1; then
+  if [[ "$requires_brew" == true ]] && ! command -v brew >/dev/null 2>&1; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     if [[ -f /opt/homebrew/bin/brew ]]; then
@@ -104,6 +117,19 @@ install_mac() {
         ;;
       java)
         install_brew_cask_if_missing "temurin@25"
+        ;;
+      cpp)
+        if ! xcode-select -p >/dev/null 2>&1; then
+          echo "Requesting Apple Command Line Tools installation..."
+          xcode-select --install || {
+            if ! xcode-select -p >/dev/null 2>&1; then
+              return 1
+            fi
+          }
+        fi
+        ;;
+      rust)
+        install_rustup_if_missing
         ;;
       nvm)
         echo "Installing nvm..."

@@ -137,6 +137,13 @@ install_linux() {
         fi
         install_apt_pkg_if_missing "temurin-25-jdk" "temurin-25-jdk"
         ;;
+      cpp)
+        install_apt_pkg_if_missing "build-essential" "build-essential"
+        ;;
+      rust)
+        install_apt_pkg_if_missing "curl" "curl"
+        install_rustup_if_missing
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

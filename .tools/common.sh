@@ -23,6 +23,8 @@ FULL_BUNDLE=(
   nvm
   node
   golang
+  cpp
+  rust
   java
   kubectl
   helm
@@ -89,6 +91,8 @@ AI_BUNDLE=(
   nvm
   node
   golang
+  cpp
+  rust
   java
   kubectl
   helm
@@ -153,6 +157,33 @@ get_tool_package_list() {
   fi
 
   printf '%s\n' "${package_list[@]}"
+}
+
+ensure_rustup_default() {
+  local toolchains
+  toolchains="$(rustup toolchain list)"
+  if ! grep -q ' (default)$' <<< "$toolchains"; then
+    rustup default stable
+  fi
+}
+
+install_rustup_if_missing() {
+  export PATH="$HOME/.cargo/bin:$PATH"
+
+  if command -v rustup >/dev/null 2>&1; then
+    ensure_rustup_default
+    echo "rustup is already installed; preserving its existing default toolchain."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install rustup." >&2
+    return 1
+  fi
+
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+  export PATH="$HOME/.cargo/bin:$PATH"
+  ensure_rustup_default
 }
 
 install_python_dev_packages() {
@@ -624,6 +655,12 @@ canonical_tool_name() {
   local tool="$1"
 
   case "$tool" in
+    rustup)
+      echo "rust"
+      ;;
+    c++)
+      echo "cpp"
+      ;;
     jdk)
       echo "java"
       ;;

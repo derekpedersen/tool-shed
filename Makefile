@@ -38,6 +38,33 @@ test:
 	@bash -lc 'set -euo pipefail; \
 		for bundle in $(BUNDLES); do echo "Testing install bundle: $$bundle"; bash ./.tools/install.sh "$$bundle" --dry-run; done; \
 		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done; \
+		echo "Testing Rust/C++ aliases and bundle order"; \
+		source ./.tools/common.sh; \
+		[[ "$$(canonical_tool_name rustup)" == rust ]]; \
+		[[ "$$(canonical_tool_name c++)" == cpp ]]; \
+		assert_cpp_before_rust() { local items=("$$@"); local cpp_index=-1; local rust_index=-1; local index; for index in "$${!items[@]}"; do case "$${items[$$index]}" in cpp) cpp_index=$$index ;; rust) rust_index=$$index ;; esac; done; [[ $$cpp_index -ge 0 && $$cpp_index -lt $$rust_index ]]; }; \
+		assert_cpp_before_rust "$${FULL_BUNDLE[@]}"; \
+		assert_cpp_before_rust "$${AI_BUNDLE[@]}"; \
+		[[ " $${CLOUD_BUNDLE[*]} " != *" cpp "* && " $${CLOUD_BUNDLE[*]} " != *" rust "* ]]; \
+		[[ " $${SERVICES_BUNDLE[*]} " != *" cpp "* && " $${SERVICES_BUNDLE[*]} " != *" rust "* ]]; \
+		echo "Testing Rust uninstall preservation"; \
+		rust_uninstall_output=$$(TOOLS_UNINSTALL_MODULE_INTERNAL=1 bash ./.tools/uninstall.sh rust --dry-run); \
+		[[ "$$rust_uninstall_output" == *"left intact"* ]]; \
+		echo "Testing C++ macOS CLT request"; \
+		source ./.tools/macos.sh; \
+		xcode_calls=(); \
+		xcode-select() { xcode_calls+=("$$*"); [[ "$$*" != -p ]]; }; \
+		install_mac cpp; \
+		[[ "$${xcode_calls[*]}" == "-p --install" ]]; \
+		echo "Testing C++ Windows workload arguments"; \
+		source ./.tools/windows.sh; \
+		winget_calls=(); \
+		winget() { winget_calls+=("$$*"); [[ "$$1" != list ]]; }; \
+		install_winget_with_override_if_missing "Microsoft.VisualStudio.2022.BuildTools" "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.26100"; \
+		[[ $${#winget_calls[@]} -eq 2 ]]; \
+		[[ "$${winget_calls[1]}" == *"--override --quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools"* ]]; \
+		echo "Testing Rust/C++ module dry runs"; \
+		for tool in rust rustup cpp c++; do bash ./.tools/install.sh "$$tool" --dry-run; bash ./.tools/uninstall.sh "$$tool" --dry-run; done; \
 		echo "Testing Java aliases"; \
 		bash ./.tools/install.sh java --dry-run; \
 		bash ./.tools/install.sh jdk --dry-run; \
