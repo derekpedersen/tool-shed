@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+update_windows() {
+  update_prepare_packages "$1" "$STATE_MANAGER" || return $?
+  local package status
+  for package in "${UPDATE_PACKAGES[@]}"; do
+    local options=(upgrade --exact --id "$package" --disable-interactivity --accept-source-agreements --accept-package-agreements)
+    [[ "$STATE_SOURCE" == - ]] || options+=(--source "$STATE_SOURCE")
+    status=0
+    update_run winget "${options[@]}" || status=$?
+    case "$status" in
+      0) ;;
+      43) echo "No applicable upgrade for $package." ;;
+      *) return "$status" ;;
+    esac
+  done
+}
+
 # ============================================================
 # Windows installer support
 # ============================================================

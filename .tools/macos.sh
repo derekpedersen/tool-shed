@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+update_mac() {
+  update_prepare_packages "$1" "$STATE_MANAGER" || return $?
+  case "$STATE_MANAGER" in
+    brew-formula) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade --formula "${UPDATE_PACKAGES[@]}" ;;
+    brew-cask) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade --cask "${UPDATE_PACKAGES[@]}" ;;
+  esac
+}
+
 install_brew_formula_if_missing() {
   local formula_name="$1"
   local binary_name="${2:-$formula_name}"

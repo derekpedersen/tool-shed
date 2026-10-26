@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
-.PHONY: build test all
+.PHONY: build test test-updates all
 
 BUNDLES := full cloud services ai
 
@@ -13,10 +13,12 @@ build:
 		test -f .bash/uninstall.sh; \
 		test -f .tools/install.sh; \
 		test -f .tools/uninstall.sh; \
+		test -f .tools/update.sh; \
+		bash -n update.sh; \
 		test -d helm; \
 		for f in .bash/*.sh; do echo "  - $$f"; bash -n "$$f"; done; \
 		for f in .tools/*.sh; do echo "  - $$f"; bash -n "$$f"; done; \
-		for f in */install.sh */uninstall.sh */bash.sh; do if [[ -f "$$f" ]]; then echo "  - $$f"; bash -n "$$f"; fi; done; \
+		for f in */install.sh */uninstall.sh */update.sh */bash.sh; do if [[ -f "$$f" ]]; then echo "  - $$f"; bash -n "$$f"; fi; done; \
 		for f in helm/*.sh; do echo "  - $$f"; bash -n "$$f"; done; \
 		tmpdir=$$(mktemp -d); \
 		chart_tmp="$$tmpdir/chart.yaml"; \
@@ -34,7 +36,10 @@ build:
 		grep -Eq "^appVersion: $${expected_sha}$$" "$$chart_tmp"; \
 		rm -rf "$$tmpdir"'
 
-test:
+test-updates:
+	@bash ./.tools/update-test.sh
+
+test: test-updates
 	@bash -lc 'set -euo pipefail; \
 		for bundle in $(BUNDLES); do echo "Testing install bundle: $$bundle"; bash ./.tools/install.sh "$$bundle" --dry-run; done; \
 		for bundle in $(BUNDLES); do echo "Testing uninstall bundle: $$bundle"; bash ./.tools/uninstall.sh "$$bundle" --dry-run; done; \

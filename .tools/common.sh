@@ -108,6 +108,44 @@ AI_BUNDLE=(
   node-full
 )
 
+UPDATEABLE_TOOLS=(
+  git
+  gpg
+  curl
+  wget
+  unzip
+  python3
+  r
+  nvm
+  node
+  golang
+  cpp
+  rust
+  java
+  scala
+  julia
+  kubectl
+  helm
+  docker
+  dotnetcore
+  vscode
+  gcloud
+  aws
+  eksctl
+  az
+  doctl
+  jq
+  yq
+  postgres
+  redis
+  mysql
+  clickhouse
+  mongodb
+  rabbitmq
+  elasticsearch
+  kafka
+)
+
 COMMON_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
 REPO_ROOT="$(cd "$COMMON_TOOLS_DIR/.." && pwd)"
 
@@ -763,6 +801,44 @@ canonical_tool_name() {
       ;;
     node-full)
       echo "node"
+
+  UPDATEABLE_TOOLS=(
+    git
+    gpg
+    curl
+    wget
+    unzip
+    python3
+    r
+    nvm
+    node
+    golang
+    cpp
+    rust
+    java
+    scala
+    julia
+    kubectl
+    helm
+    docker
+    dotnetcore
+    vscode
+    gcloud
+    aws
+    eksctl
+    az
+    doctl
+    jq
+    yq
+    postgres
+    redis
+    mysql
+    clickhouse
+    mongodb
+    rabbitmq
+    elasticsearch
+    kafka
+  )
       ;;
     node)
       echo "node"

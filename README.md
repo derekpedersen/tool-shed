@@ -20,7 +20,7 @@ This repo intentionally separates concerns into three zones:
 | Tool bench | [.tools](.tools) | Bundle orchestration, install/uninstall controllers, OS-specific logic, and shared runtime behavior. |
 | Service yard | [.services](.services) | Docker Compose-based local dev services such as PostgreSQL, Redis, RabbitMQ, MongoDB, Grafana, and Prometheus. |
 
-The repo-root tool folders are intentionally atomized and individual. Each package such as [docker](docker), [kubectl](kubectl), [aws](aws), [gcloud](gcloud), and [git](git) has its own hook on the wall: install, uninstall, and any optional bash helpers or Windows shims.
+The repo-root tool folders are intentionally atomized and individual. Each package such as [docker](docker), [kubectl](kubectl), [aws](aws), [gcloud](gcloud), and [git](git) has its own hook on the wall: install, update, uninstall, and any optional bash helpers or Windows shims.
 
 ## Shed catalog
 
@@ -157,6 +157,28 @@ TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed curl -fsS
 ```
 
 Install output is also written to `~/.tool-shed/logs/install-<timestamp>.log` (override with `TOOL_SHED_LOG_DIR`). Dry runs are not logged.
+
+### Update installed tools
+
+```bash
+bash update.sh --dry-run       # Preview all recorded, installed tools
+bash update.sh                 # Update managed installations
+bash update.sh cloud           # Update installed members of one bundle
+bash jq/update.sh --dry-run    # Update one module
+```
+
+For installations made before state tracking was introduced, preview and explicitly
+adopt the tools you want tool-shed to manage first:
+
+```bash
+bash update.sh --adopt cloud --dry-run
+bash update.sh --adopt cloud
+```
+
+Updates never install absent tools. Major-version changes, developer packages, and
+database/service updates require explicit options. PowerShell users can run
+`pwsh ./.tools/update.ps1 --dry-run`. See [.tools/README.md](.tools/README.md#updating-installed-tools)
+for adoption, supported update sources, safety gates, and limitations.
 
 ### Close the doors
 
