@@ -4,6 +4,92 @@ Curated shell helpers, bootstrap installers, and small operational tooling for l
 
 Think of this repo as a well-labeled shed: the helper loft holds shell shortcuts, the tool bench runs installs and uninstalls, and the service yard keeps local dependencies ready when you need them.
 
+## Quick start
+
+The root commands cover the common workflows. Preview removals and updates before
+running them for real. Curl commands download and execute the current `main` branch.
+
+From a checkout:
+
+Install:
+
+```bash
+bash ./install.sh
+```
+
+List installed tools and versions:
+
+```bash
+bash ./list.sh
+```
+
+Preview bundle removal:
+
+```bash
+bash ./uninstall.sh cloud --dry-run
+```
+
+Remove a bundle:
+
+```bash
+bash ./uninstall.sh cloud
+```
+
+Preview managed updates:
+
+```bash
+bash ./update.sh --dry-run
+```
+
+Update managed tools:
+
+```bash
+bash ./update.sh
+```
+
+Download and run without cloning the repository:
+
+Install:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/install.sh | bash
+```
+
+List installed tools and versions:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash
+```
+
+Preview bundle removal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- cloud --dry-run
+```
+
+Remove a bundle:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- cloud
+```
+
+Preview managed updates:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --dry-run
+```
+
+Update managed tools:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash
+```
+
+Uninstall requires an explicit tool or bundle. Existing installations must be
+adopted before tool-shed will update them; preview adoption with
+`bash ./update.sh --adopt cloud --dry-run`. Review scripts before piping remote
+code into Bash.
+
 ## What’s in the shed
 
 - [.bash/README.md](.bash/README.md) for shell helper usage and the helper loft
@@ -85,7 +171,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): Copilot-specific conventions
 - [.github/dependabot.yml](.github/dependabot.yml): weekly dependency update checks for GitHub Actions, Docker, and Python packages
 
-## Quick start
+## Command details
 
 ### Use the root installer prompt
 
