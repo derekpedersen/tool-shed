@@ -13,6 +13,29 @@ set -euo pipefail
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+list_mode=false
+adopt_mode=false
+list_args=()
+for arg in "$@"; do
+  case "$arg" in
+    --list) list_mode=true ;;
+    --adopt) adopt_mode=true ;;
+    --dry-run|-n) ;;
+    --allow-major|--include-services|--yes|--with-packages)
+      list_args+=("$arg")
+      ;;
+    *) list_args+=("$arg") ;;
+  esac
+done
+if [[ "$list_mode" == true ]]; then
+  if [[ "$adopt_mode" == true ]]; then
+    echo "--list cannot be combined with --adopt." >&2
+    exit 2
+  fi
+  exec bash "$SCRIPT_DIR/list.sh" "${list_args[@]}"
+fi
+
 source "$SCRIPT_DIR/update-runtime.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 

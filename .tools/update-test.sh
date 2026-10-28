@@ -30,7 +30,13 @@ touch "$MOCK_LOG"
 id() { if [[ "${1:-}" == -u ]]; then echo 0; else command id "$@"; fi; }
 jq() { echo jq-1.6.0; }
 curl() {
-  if [[ "${1:-}" == --version ]]; then
+  if [[ -n "${MOCK_BOOTSTRAP_ARCHIVE:-}" ]]; then
+    case "${MOCK_BOOTSTRAP_MODE:-success}" in
+      success) cp "$MOCK_BOOTSTRAP_ARCHIVE" "${!#}" ;;
+      fail) return 22 ;;
+      *) printf 'not a gzip archive' > "${!#}" ;;
+    esac
+  elif [[ "${1:-}" == --version ]]; then
     echo 'curl 1.6.0'
   elif [[ "${MOCK_DOWNLOADS:-false}" == true ]]; then
     case "$2" in
@@ -208,5 +214,72 @@ echo 'Testing Homebrew and winget command shapes with mocks'
   winget() { [[ "$*" == 'upgrade --exact --id 9NJNWW8PVKMN --disable-interactivity --accept-source-agreements --accept-package-agreements --source msstore' ]]; }
   update_windows julia
 )
+
+echo 'Testing standalone list inventory and updater independence'
+output="$(TOOL_SHED_STATE_DIR="$temporary/list-state" bash list.sh jq)"
+[[ "$output" == *'jq '* && "$output" == *'unmanaged'* ]]
+output="$(TOOL_SHED_STATE_DIR="$temporary/list-state" bash .tools/update.sh --list jq)"
+[[ "$output" == *'jq '* && "$output" == *'unmanaged'* ]]
+if bash list.sh ../escape >/dev/null 2>&1; then exit 1; fi
+if bash list.sh jq --adopt >/dev/null 2>&1; then exit 1; fi
+[[ ! -e "$TOOL_SHED_STATE_DIR/update.lock" ]]
+
+echo 'Testing version-probe failure falls back to installed package metadata'
+(
+  source .tools/tool-catalog.sh
+  jq() { echo 'invalid version output'; return 1; }
+  tool_package_specs() { printf 'apt\tjq\n'; }
+  catalog_package_installed() { return 0; }
+  catalog_package_version() { echo 1.7.2; }
+  [[ "$(catalog_tool_installed_version jq)" == 1.7.2 ]]
+  catalog_package_version() { :; }
+  [[ "$(catalog_tool_installed_version jq)" == unknown ]]
+)
+
+echo 'Testing remote-style bootstrap from piped root scripts'
+export TOOL_SHED_REPO=example/tool-shed TOOL_SHED_REF=test-ref
+export MOCK_BOOTSTRAP_ARCHIVE="$temporary/tool-shed.tar.gz"
+mkdir -p "$temporary/archive/tool-shed/.tools"
+cp list.sh "$temporary/archive/tool-shed/list.sh"
+cp update.sh "$temporary/archive/tool-shed/update.sh"
+cp uninstall.sh "$temporary/archive/tool-shed/uninstall.sh"
+cp .tools/*.sh "$temporary/archive/tool-shed/.tools/"
+mkdir -p "$temporary/archive/tool-shed/jq"
+cp jq/uninstall.sh "$temporary/archive/tool-shed/jq/uninstall.sh"
+tar -czf "$MOCK_BOOTSTRAP_ARCHIVE" -C "$temporary/archive" tool-shed
+mkdir -p "$temporary/outside" "$temporary/bootstrap-tmp"
+export TMPDIR="$temporary/bootstrap-tmp"
+output="$(cd "$temporary/outside" && TOOL_SHED_STATE_DIR="$temporary/list-state" bash -s -- jq < "$SCRIPT_DIR/../list.sh")"
+[[ "$output" == *'jq '* && "$output" == *'unmanaged'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
+output="$(cd "$temporary/outside" && TOOL_SHED_STATE_DIR="$temporary/remote-state" bash -s -- --dry-run < "$SCRIPT_DIR/../update.sh")"
+[[ "$output" == *'No managed tools recorded'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
+output="$(cd "$temporary/outside" && TOOL_SHED_OS_OVERRIDE=Linux bash -s -- jq --dry-run < "$SCRIPT_DIR/../uninstall.sh")"
+[[ "$output" == *'would uninstall jq'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
+
+echo 'Testing root uninstall requires an explicit target'
+status=0
+output="$(cd "$temporary/outside" && bash -s -- --dry-run < "$SCRIPT_DIR/../uninstall.sh" 2>&1)" || status=$?
+[[ "$status" == 2 && "$output" == *'explicit uninstall target is required'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
+
+echo 'Testing remote bootstrap error and exit handling'
+status=0
+output="$(cd "$temporary/outside" && MOCK_BOOTSTRAP_MODE=fail bash -s -- jq < "$SCRIPT_DIR/../list.sh" 2>&1)" || status=$?
+[[ "$status" != 0 ]]
+status=0
+output="$(cd "$temporary/outside" && MOCK_BOOTSTRAP_MODE=invalid bash -s -- jq < "$SCRIPT_DIR/../list.sh" 2>&1)" || status=$?
+[[ "$status" != 0 && "$output" == *'Could not extract'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
+status=0
+output="$(cd "$temporary/outside" && TOOL_SHED_BOOTSTRAPPED=1 bash -s -- jq < "$SCRIPT_DIR/../list.sh" 2>&1)" || status=$?
+[[ "$status" != 0 && "$output" == *'missing after bootstrap'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
+status=0
+output="$(cd "$temporary/outside" && bash -s -- unknown-tool < "$SCRIPT_DIR/../list.sh" 2>&1)" || status=$?
+[[ "$status" == 2 && "$output" == *'Unsupported list target'* ]]
+[[ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]]
 
 echo 'Update safety tests passed.'

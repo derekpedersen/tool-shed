@@ -342,22 +342,30 @@ catalog_tool_installed_version() {
   [[ "$tool" == "nvm" || "$tool" == "node" ]] && catalog_source_nvm
   executable="$(tool_executable "$tool" 2>/dev/null || true)"
   if [[ -n "$executable" ]] && command -v "$executable" >/dev/null 2>&1; then
-    case "$tool" in
-      nvm) version="$(nvm --version 2>/dev/null || true)" ;;
-      julia) version="$(julia --version 2>/dev/null || true)" ;;
-      juliaup) version="$(juliaup --version 2>/dev/null || true)" ;;
-      rust) version="$(rustc --version 2>/dev/null || true)" ;;
-      rustup) version="$(rustup --version 2>/dev/null || true)" ;;
-      golang) version="$(go version 2>/dev/null || true)" ;;
-      java) version="$(java -version 2>&1 | awk 'NR == 1 {print; exit}')" ;;
-      r) version="$(R --version 2>/dev/null | awk 'NR == 1 {print; exit}')" ;;
-      cpp) version="$("$executable" --version 2>&1 | awk 'NR == 1 {print; exit}')" ;;
-      kubectl) version="$(kubectl version --client 2>/dev/null | awk 'NR == 1 {print; exit}')" ;;
-      helm) version="$(helm version --short 2>/dev/null || true)" ;;
-      docker) version="$(docker --version 2>/dev/null || true)" ;;
-      scala) version="$(scala-cli version 2>/dev/null | awk 'NR == 1 {print; exit}')" ;;
-      *) version="$("$executable" --version 2>&1 | awk 'NR == 1 {print; exit}')" ;;
-    esac
+    if [[ "$tool" == "julia" ]] && command -v juliaup >/dev/null 2>&1; then
+      version=""
+    elif version="$(
+      case "$tool" in
+        nvm) nvm --version ;;
+        julia) julia --version ;;
+        juliaup) juliaup --version ;;
+        rust) rustc --version ;;
+        rustup) rustup --version ;;
+        golang) go version ;;
+        java) java -version 2>&1 | awk 'NR == 1 {print; exit}' ;;
+        r) R --version 2>/dev/null | awk 'NR == 1 {print; exit}' ;;
+        cpp) "$executable" --version 2>&1 | awk 'NR == 1 {print; exit}' ;;
+        kubectl) kubectl version --client 2>/dev/null | awk 'NR == 1 {print; exit}' ;;
+        helm) helm version --short ;;
+        docker) docker --version ;;
+        scala) scala-cli version 2>/dev/null | awk 'NR == 1 {print; exit}' ;;
+        *) "$executable" --version 2>&1 | awk 'NR == 1 {print; exit}' ;;
+      esac
+    )"; then
+      :
+    else
+      version=""
+    fi
     [[ -n "$version" ]] && { printf '%s\n' "$version"; return 0; }
   fi
 

@@ -122,7 +122,7 @@ The installer gathers the selected helper files into a single managed file (`~/.
 Optional overrides for testing another branch or fork, or changing the managed helpers file:
 
 ```bash
-TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bash/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bash/install.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash
 TOOL_SHED_HELPERS_FILE=~/.my-helpers curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bash/install.sh | bash
 ```
 
@@ -153,10 +153,41 @@ curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools
 Optional override for testing another branch or fork during bootstrap:
 
 ```bash
-TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools/install.sh | bash -s -- full
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools/install.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash -s -- full
 ```
 
 Install output is also written to `~/.tool-shed/logs/install-<timestamp>.log` (override with `TOOL_SHED_LOG_DIR`). Dry runs are not logged.
+
+### List installed tools
+
+The standalone inventory lists supported installed tools, their live versions,
+and whether tool-shed manages them. It does not call the updater or change state.
+
+From a checkout:
+
+```bash
+bash ./list.sh
+bash ./list.sh cloud
+bash ./list.sh git jq
+```
+
+Download and run directly from GitHub (the script downloads its repository
+helpers, then inventories the local machine):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- cloud
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- git jq
+```
+
+To inspect a branch or fork, pass bootstrap settings to the receiving Bash:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash -s -- cloud
+```
+
+`bash update.sh --list` remains available as a compatibility alias for the
+standalone listing command.
 
 ### Update installed tools
 
@@ -167,12 +198,33 @@ bash update.sh cloud           # Update installed members of one bundle
 bash jq/update.sh --dry-run    # Update one module
 ```
 
+Download and run the standalone updater from GitHub. Start with `--dry-run` to
+review the managed tools it would update:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- cloud --dry-run
+```
+
+For a selected branch or fork:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash -s -- --dry-run
+```
+
 For installations made before state tracking was introduced, preview and explicitly
 adopt the tools you want tool-shed to manage first:
 
 ```bash
 bash update.sh --adopt cloud --dry-run
 bash update.sh --adopt cloud
+```
+
+The matching remote preview and adoption commands are:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --adopt cloud --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --adopt cloud
 ```
 
 Updates never install absent tools. Major-version changes, developer packages, and
@@ -190,11 +242,32 @@ This removes the managed source block from your shell profile and deletes the ge
 
 ### Pack up the tools
 
+The root `uninstall.sh` requires an explicit target and supports a dry run. This
+prevents a no-argument invocation from inheriting the lower-level controller's
+full-bundle default.
+
 ```bash
+bash ./uninstall.sh jq --dry-run
+bash ./uninstall.sh cloud --dry-run
+bash ./uninstall.sh jq
+bash ./uninstall.sh full
 bash ./.tools/uninstall.sh full
 bash ./.tools/uninstall.sh services
 bash ./.tools/uninstall.sh kubectl docker
 bash ./.tools/uninstall.sh ai --dry-run
+```
+
+Download and preview an explicit remote uninstall target:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- cloud --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- jq --dry-run
+```
+
+After reviewing the preview, omit `--dry-run` to uninstall:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- jq
 ```
 
 Windows examples:

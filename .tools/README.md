@@ -18,6 +18,7 @@ Canonical bundle names are defined in `common.sh` and intentionally limited to:
 - install.ps1: PowerShell wrapper for Windows installs.
 - uninstall.ps1: PowerShell wrapper for Windows uninstalls.
 - update.sh / update.ps1: managed tool and bundle update controllers.
+- list.sh: standalone, read-only inventory controller, independent of updates.
 - state.sh: per-user installation source, profile, and bundle records.
 - update-runtime.sh / update-download.sh: update guards and verified upstream downloads.
 - update-test.sh: isolated update regression tests, run by `make test-updates`.
@@ -42,6 +43,31 @@ bash jq/update.sh --dry-run         # Individual module, same options and guards
 bash .tools/update.sh --list         # Recorded tools and requested bundles
 ```
 
+`bash .tools/update.sh --list` delegates to the standalone root `list.sh` for
+compatibility. The standalone command does not load the update runtime:
+
+```bash
+bash ./list.sh
+bash ./list.sh cloud
+bash ./list.sh git jq
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- cloud
+```
+
+Listing detects every supported installed tool by default, including optional and
+unmanaged tools, and shows the live version plus managed status. It does not query
+available versions, refresh package metadata, write state, or perform updates. A
+remote one-liner downloads the repository helpers before this local read-only scan.
+
+The root updater can also bootstrap itself when run from a pipe outside a checkout:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- cloud --dry-run
+```
+
+Set `TOOL_SHED_REF` and `TOOL_SHED_REPO` on the receiving `bash` process to
+select another branch or fork. Review remote scripts before executing them.
+
 Windows uses the same controller through Git Bash:
 
 ```powershell
@@ -49,6 +75,10 @@ pwsh ./.tools/update.ps1 --dry-run
 pwsh ./.tools/update.ps1 cloud
 pwsh ./.tools/update.ps1 jq
 ```
+
+The root `uninstall.sh` is the explicit-target counterpart for removal. It refuses
+to run without a tool or bundle target, and supports `--dry-run`; preview removals
+before running a command without that flag.
 
 There is an `update.sh` in every installable tool module, including explicit
 not-applicable results for identity, Git configuration/signing, and SSH keys.

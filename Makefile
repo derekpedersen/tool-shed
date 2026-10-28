@@ -15,6 +15,9 @@ build:
 		test -f .tools/uninstall.sh; \
 		test -f .tools/update.sh; \
 		bash -n update.sh; \
+		bash -n list.sh; \
+		bash -n uninstall.sh; \
+		test -f .tools/list.sh; \
 		test -d helm; \
 		for f in .bash/*.sh; do echo "  - $$f"; bash -n "$$f"; done; \
 		for f in .tools/*.sh; do echo "  - $$f"; bash -n "$$f"; done; \
