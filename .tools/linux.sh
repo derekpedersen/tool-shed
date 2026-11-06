@@ -83,6 +83,31 @@ install_linux() {
         fi
         configure_helm_completion
         ;;
+      direnv)
+        install_apt_pkg_if_missing "direnv" "direnv"
+        ;;
+      kind)
+        if ! command -v kind >/dev/null 2>&1; then
+          curl -fsSL -o /usr/local/bin/kind "https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64"
+          chmod +x /usr/local/bin/kind
+        fi
+        ;;
+      stern)
+        if ! command -v stern >/dev/null 2>&1; then
+          curl -fsSL -o /tmp/stern.tar.gz "https://github.com/stern/stern/releases/latest/download/stern_linux_amd64.tar.gz"
+          tar -xzf /tmp/stern.tar.gz -C /tmp
+          install -m 0755 /tmp/stern /usr/local/bin/stern
+        fi
+        ;;
+      kubeseal)
+        if ! command -v kubeseal >/dev/null 2>&1; then
+          curl -fsSL -o /tmp/kubeseal.tar.gz "https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/kubeseal-linux-amd64"
+          install -m 0755 /tmp/kubeseal.tar.gz /usr/local/bin/kubeseal
+        fi
+        ;;
+      httpie)
+        install_apt_pkg_if_missing "httpie" "http"
+        ;;
       rg)
         install_apt_pkg_if_missing "ripgrep" "rg"
         ;;

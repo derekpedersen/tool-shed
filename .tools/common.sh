@@ -25,6 +25,11 @@ FULL_BUNDLE=(
   golang
   kubectl
   helm
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
   rg
   fd
   bat
@@ -66,6 +71,11 @@ CLOUD_BUNDLE=(
   golang
   kubectl
   helm
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
   rg
   fd
   bat

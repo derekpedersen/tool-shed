@@ -65,6 +65,21 @@ install_mac() {
         install_brew_formula_if_missing "helm"
         configure_helm_completion
         ;;
+      direnv)
+        install_brew_formula_if_missing "direnv"
+        ;;
+      kind)
+        install_brew_formula_if_missing "kind"
+        ;;
+      stern)
+        install_brew_formula_if_missing "stern"
+        ;;
+      kubeseal)
+        install_brew_formula_if_missing "kubeseal"
+        ;;
+      httpie)
+        install_brew_formula_if_missing "httpie"
+        ;;
       rg)
         install_brew_formula_if_missing "ripgrep" "rg"
         ;;

@@ -44,10 +44,15 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [gh](gh) | GH | GitHub CLI | GitHub CLI for PRs, issues, and repository automation. | [GitHub CLI](https://cli.github.com/) |
 | [git](git) | Git | Git | Git aliases, workflow helpers, and repo automation commands. | [Git](https://git-scm.com/) |
 | [bat](bat) | Bat | Better shell cat | A syntax-highlighted, Git-aware alternative to cat. | [bat](https://github.com/sharkdp/bat) |
+| [direnv](direnv) | Direnv | Env loader | Loads project env vars automatically for local shells. | [direnv](https://direnv.net/) |
 | [eza](eza) | Eza | Better ls | A modern, feature-rich alternative to ls. | [eza](https://github.com/eza-community/eza) |
 | [fd](fd) | FD | Fast file finder | A quick, friendly alternative to find. | [fd](https://github.com/sharkdp/fd) |
 | [fzf](fzf) | FZF | Fuzzy finder | Fast interactive filtering and selection at the shell. | [fzf](https://github.com/junegunn/fzf) |
+| [httpie](httpie) | HTTPie | API client | A nicer command-line HTTP client for local API workflows. | [HTTPie](https://httpie.io/) |
+| [kind](kind) | Kind | Local K8s | Local Kubernetes cluster creation for container-native dev. | [kind](https://kind.sigs.k8s.io/) |
+| [kubeseal](kubeseal) | Kubeseal | Secret sealing | Seals Kubernetes Secrets for safe distribution and storage. | [kubeseal](https://github.com/bitnami-labs/sealed-secrets) |
 | [rg](rg) | RG | Ripgrep | Fast recursive search for code and text. | [ripgrep](https://github.com/BurntSushi/ripgrep) |
+| [stern](stern) | Stern | K8s log tailing | Tails logs across multiple Kubernetes pods and containers. | [stern](https://github.com/stern/stern) |
 | [git-config](git-config) | GitCfg | Git config setup | Idempotent Git identity and configuration bootstrap. | [Git configuration](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) |
 | [git-signing](git-signing) | GitSig | Git signing setup | GPG-based signing setup for Git commit and tag verification. | [Signing commits](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work) |
 | [golang](golang) | Go | Go toolchain | Go language install and environment bootstrap. | [Go](https://go.dev/) |

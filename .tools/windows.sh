@@ -100,6 +100,21 @@ install_windows() {
       helm)
         install_winget_if_missing "Helm.Helm" "helm"
         ;;
+      direnv)
+        install_winget_if_missing "direnv.direnv" "direnv"
+        ;;
+      kind)
+        install_winget_if_missing "kind.kind" "kind"
+        ;;
+      stern)
+        install_winget_if_missing "stern.stern" "stern"
+        ;;
+      kubeseal)
+        install_winget_if_missing "bitnami-labs.kubeseal" "kubeseal"
+        ;;
+      httpie)
+        install_winget_if_missing "HTTPie.HTTPie" "http"
+        ;;
       rg)
         install_winget_if_missing "BurntSushi.ripgrep.MSVC" "rg"
         ;;
@@ -229,6 +244,21 @@ uninstall_windows() {
       ;;
     helm)
       remove_winget_if_present "Helm.Helm"
+      ;;
+    direnv)
+      remove_winget_if_present "direnv.direnv"
+      ;;
+    kind)
+      remove_winget_if_present "kind.kind"
+      ;;
+    stern)
+      remove_winget_if_present "stern.stern"
+      ;;
+    kubeseal)
+      remove_winget_if_present "bitnami-labs.kubeseal"
+      ;;
+    httpie)
+      remove_winget_if_present "HTTPie.HTTPie"
       ;;
     rg)
       remove_winget_if_present "BurntSushi.ripgrep.MSVC"
