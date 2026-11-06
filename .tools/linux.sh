@@ -83,6 +83,67 @@ install_linux() {
         fi
         configure_helm_completion
         ;;
+      rg)
+        install_apt_pkg_if_missing "ripgrep" "rg"
+        ;;
+      fd)
+        install_apt_pkg_if_missing "fd-find" "fd"
+        if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then
+          if [[ -n "${SUDO:-}" ]]; then
+            $SUDO ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+          else
+            ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+          fi
+        fi
+        ;;
+      bat)
+        install_apt_pkg_if_missing "bat" "bat"
+        if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+          if [[ -n "${SUDO:-}" ]]; then
+            $SUDO ln -sf "$(command -v batcat)" /usr/local/bin/bat
+          else
+            ln -sf "$(command -v batcat)" /usr/local/bin/bat
+          fi
+        fi
+        ;;
+      eza)
+        install_apt_pkg_if_missing "eza" "eza"
+        ;;
+      fzf)
+        install_apt_pkg_if_missing "fzf" "fzf"
+        ;;
+      gh)
+        install_apt_pkg_if_missing "gh" "gh"
+        ;;
+      terraform)
+        if ! command -v terraform >/dev/null 2>&1; then
+          local terraform_version="1.9.8"
+          curl -fsSL -o /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip"
+          unzip -o /tmp/terraform.zip -d /tmp/terraform-bin
+          install -m 0755 /tmp/terraform-bin/terraform /usr/local/bin/terraform
+        fi
+        ;;
+      tflint)
+        if ! command -v tflint >/dev/null 2>&1; then
+          curl -fsSL -o /tmp/tflint.zip "https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip"
+          unzip -o /tmp/tflint.zip -d /tmp/tflint-bin
+          install -m 0755 /tmp/tflint-bin/tflint /usr/local/bin/tflint
+        fi
+        ;;
+      k9s)
+        if ! command -v k9s >/dev/null 2>&1; then
+          curl -fsSL -o /tmp/k9s.tar.gz "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz"
+          tar -xzf /tmp/k9s.tar.gz -C /tmp
+          install -m 0755 /tmp/k9s /usr/local/bin/k9s
+        fi
+        ;;
+      trivy)
+        if ! command -v trivy >/dev/null 2>&1; then
+          curl -fsSL -o /tmp/trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.55.2_Linux-64bit.tar.gz"
+          tar -xzf /tmp/trivy.tar.gz -C /tmp
+          install -m 0755 /tmp/trivy /usr/local/bin/trivy
+        fi
+        ;;
       kubectl)
         install_apt_pkg_if_missing "curl" "curl"
         if ! command -v kubectl >/dev/null 2>&1; then

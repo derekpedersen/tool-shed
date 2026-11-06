@@ -25,6 +25,16 @@ FULL_BUNDLE=(
   golang
   kubectl
   helm
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
   docker
   dotnetcore
   vscode
@@ -56,6 +66,16 @@ CLOUD_BUNDLE=(
   golang
   kubectl
   helm
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
   docker
   dotnetcore
   vscode

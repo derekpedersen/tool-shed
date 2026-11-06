@@ -65,6 +65,36 @@ install_mac() {
         install_brew_formula_if_missing "helm"
         configure_helm_completion
         ;;
+      rg)
+        install_brew_formula_if_missing "ripgrep" "rg"
+        ;;
+      fd)
+        install_brew_formula_if_missing "fd" "fd"
+        ;;
+      bat)
+        install_brew_formula_if_missing "bat" "bat"
+        ;;
+      eza)
+        install_brew_formula_if_missing "eza" "eza"
+        ;;
+      fzf)
+        install_brew_formula_if_missing "fzf" "fzf"
+        ;;
+      gh)
+        install_brew_formula_if_missing "gh"
+        ;;
+      terraform)
+        install_brew_formula_if_missing "terraform"
+        ;;
+      tflint)
+        install_brew_formula_if_missing "tflint"
+        ;;
+      k9s)
+        install_brew_formula_if_missing "k9s"
+        ;;
+      trivy)
+        install_brew_formula_if_missing "trivy"
+        ;;
       kubectl)
         install_brew_formula_if_missing "kubectl"
         configure_kubectl_completion

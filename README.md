@@ -41,14 +41,24 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [eksctl](eksctl) | EKSCTL | Amazon EKS CLI | CLI for creating and managing Amazon EKS clusters. | [eksctl](https://eksctl.io/) |
 | [elasticsearch](elasticsearch) | ES | Elasticsearch | Elasticsearch install and operational helpers. | [Elasticsearch](https://www.elastic.co/elasticsearch/) |
 | [gcloud](gcloud) | GCP | Google Cloud SDK | Google Cloud CLI and helpers for GCP developer workflows. | [Google Cloud SDK](https://cloud.google.com/sdk) |
+| [gh](gh) | GH | GitHub CLI | GitHub CLI for PRs, issues, and repository automation. | [GitHub CLI](https://cli.github.com/) |
 | [git](git) | Git | Git | Git aliases, workflow helpers, and repo automation commands. | [Git](https://git-scm.com/) |
+| [bat](bat) | Bat | Better shell cat | A syntax-highlighted, Git-aware alternative to cat. | [bat](https://github.com/sharkdp/bat) |
+| [eza](eza) | Eza | Better ls | A modern, feature-rich alternative to ls. | [eza](https://github.com/eza-community/eza) |
+| [fd](fd) | FD | Fast file finder | A quick, friendly alternative to find. | [fd](https://github.com/sharkdp/fd) |
+| [fzf](fzf) | FZF | Fuzzy finder | Fast interactive filtering and selection at the shell. | [fzf](https://github.com/junegunn/fzf) |
+| [rg](rg) | RG | Ripgrep | Fast recursive search for code and text. | [ripgrep](https://github.com/BurntSushi/ripgrep) |
 | [git-config](git-config) | GitCfg | Git config setup | Idempotent Git identity and configuration bootstrap. | [Git configuration](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) |
 | [git-signing](git-signing) | GitSig | Git signing setup | GPG-based signing setup for Git commit and tag verification. | [Signing commits](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work) |
 | [golang](golang) | Go | Go toolchain | Go language install and environment bootstrap. | [Go](https://go.dev/) |
+| [k9s](k9s) | k9s | Kubernetes CLI dashboard | Kubernetes cluster navigation and troubleshooting from the terminal. | [k9s](https://k9scli.io/) |
 | [gpg](gpg) | GPG | GNU Privacy Guard | GPG key generation and signing setup. | [GnuPG](https://gnupg.org/) |
 | [helm](helm) | Helm | Helm package manager | Helm chart helpers, release shortcuts, and version stamping tools. | [Helm](https://helm.sh/) |
 | [identity](identity) | ID | Identity setup | Combined identity/bootstrap helpers for Git, SSH, and GPG setup. | [Identity management](https://en.wikipedia.org/wiki/Identity_management) |
 | [jq](jq) | jq | jq JSON processor | Lightweight JSON parsing and filtering from the shell. | [jq](https://jqlang.github.io/jq/) |
+| [terraform](terraform) | TF | Terraform | Infrastructure as code workflow and Terraform validation. | [Terraform](https://developer.hashicorp.com/terraform) |
+| [tflint](tflint) | TFlint | Terraform linting | Lint checks for Terraform modules and configuration. | [TFLint](https://github.com/terraform-linters/tflint) |
+| [trivy](trivy) | Trivy | Vulnerability scanning | Security scanner for filesystem, image, and config checks. | [Trivy](https://trivy.dev/) |
 | [kafka](kafka) | Kafka | Apache Kafka | Kafka broker install and local data platform helpers. | [Kafka](https://kafka.apache.org/) |
 | [kubectl](kubectl) | kubectl | Kubernetes CLI | Kubernetes administration and cluster troubleshooting helpers. | [kubectl](https://kubernetes.io/docs/reference/kubectl/) |
 | [mongodb](mongodb) | MongoDB | MongoDB | MongoDB database metadata and local developer setup. | [MongoDB](https://www.mongodb.com/) |

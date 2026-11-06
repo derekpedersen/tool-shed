@@ -100,6 +100,36 @@ install_windows() {
       helm)
         install_winget_if_missing "Helm.Helm" "helm"
         ;;
+      rg)
+        install_winget_if_missing "BurntSushi.ripgrep.MSVC" "rg"
+        ;;
+      fd)
+        install_winget_if_missing "sharkdp.fd" "fd"
+        ;;
+      bat)
+        install_winget_if_missing "sharkdp.bat" "bat"
+        ;;
+      eza)
+        install_winget_if_missing "eza-community.eza" "eza"
+        ;;
+      fzf)
+        install_winget_if_missing "junegunn.fzf" "fzf"
+        ;;
+      gh)
+        install_winget_if_missing "GitHub.cli" "gh"
+        ;;
+      terraform)
+        install_winget_if_missing "Hashicorp.Terraform" "terraform"
+        ;;
+      tflint)
+        install_winget_if_missing "TFLint.TFLint" "tflint"
+        ;;
+      k9s)
+        install_winget_if_missing "derailed.k9s" "k9s"
+        ;;
+      trivy)
+        install_winget_if_missing "AquaSecurity.Trivy" "trivy"
+        ;;
       docker)
         install_winget_if_missing "Docker.DockerDesktop" "docker"
         ;;
@@ -199,6 +229,36 @@ uninstall_windows() {
       ;;
     helm)
       remove_winget_if_present "Helm.Helm"
+      ;;
+    rg)
+      remove_winget_if_present "BurntSushi.ripgrep.MSVC"
+      ;;
+    fd)
+      remove_winget_if_present "sharkdp.fd"
+      ;;
+    bat)
+      remove_winget_if_present "sharkdp.bat"
+      ;;
+    eza)
+      remove_winget_if_present "eza-community.eza"
+      ;;
+    fzf)
+      remove_winget_if_present "junegunn.fzf"
+      ;;
+    gh)
+      remove_winget_if_present "GitHub.cli"
+      ;;
+    terraform)
+      remove_winget_if_present "Hashicorp.Terraform"
+      ;;
+    tflint)
+      remove_winget_if_present "TFLint.TFLint"
+      ;;
+    k9s)
+      remove_winget_if_present "derailed.k9s"
+      ;;
+    trivy)
+      remove_winget_if_present "AquaSecurity.Trivy"
       ;;
     docker)
       remove_winget_if_present "Docker.DockerDesktop"
