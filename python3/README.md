@@ -1,13 +1,24 @@
-# python3
+# Python 3
 
-Module for python3-related tooling and shell helpers.
+Python 3 is a general-purpose scripting language widely used for automation, data work, API tooling, and machine learning. Official site: https://www.python.org/
+
+## What it is used for
+
+- Writing scripts and automation for local and CI workflows
+- Managing data processing, analysis, and ETL tasks
+- Building APIs, tooling, and automation for dev environments
+- Supporting Python-based ML, data science, and developer utilities
 
 ## Files
 
-- install.sh: install python3 through the central installer runtime.
-- uninstall.sh: uninstall python3 through the central installer runtime.
-- install.windows.ps1: PowerShell wrapper for python3 installation on Windows.
-- pip-tools.sh: reviewable list of Python tools managed with pip.
+- install.sh: install Python 3 through the central installer runtime
+- uninstall.sh: uninstall Python 3 through the central installer runtime
+- install.windows.ps1: PowerShell wrapper for Python 3 installation on Windows
+- pip-tools.sh: reviewable list of Python tools managed with pip
+
+## Aliases
+
+Accepted alias names: python, python3
 
 ## Usage
 
@@ -15,9 +26,6 @@ From repo root:
 
 ```bash
 bash ./.tools/install.sh python3
-```
-
-```bash
 bash ./.tools/uninstall.sh python3
 ```
 
@@ -52,23 +60,6 @@ bash python3/pip-tools.sh --install
 ### Update the manifest
 
 Edit the `PYTHON_TOOLS` array at the top of `python3/pip-tools.sh` and keep the list in one place for easy review and updates.
-
-Example:
-
-```bash
-PYTHON_TOOLS=(
-  "pip-tools"
-  "pipx"
-  "virtualenv"
-  "black"
-  "ruff"
-  "mypy"
-  "pytest"
-  "pre-commit"
-  "requests"
-  "boto3"
-)
-```
 
 ### Notes
 
