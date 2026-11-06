@@ -42,6 +42,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [elasticsearch](elasticsearch) | ES | Elasticsearch | Elasticsearch install and operational helpers. | [Elasticsearch](https://www.elastic.co/elasticsearch/) |
 | [gcloud](gcloud) | GCP | Google Cloud SDK | Google Cloud CLI and helpers for GCP developer workflows. | [Google Cloud SDK](https://cloud.google.com/sdk) |
 | [gh](gh) | GH | GitHub CLI | GitHub CLI for PRs, issues, and repository automation. | [GitHub CLI](https://cli.github.com/) |
+| [java](java) | Java | Java JDK | Java runtime and JDK bootstrap for local development and JVM tooling. | [Java](https://openjdk.org/) |
 | [git](git) | Git | Git | Git aliases, workflow helpers, and repo automation commands. | [Git](https://git-scm.com/) |
 | [bat](bat) | Bat | Better shell cat | A syntax-highlighted, Git-aware alternative to cat. | [bat](https://github.com/sharkdp/bat) |
 | [direnv](direnv) | Direnv | Env loader | Loads project env vars automatically for local shells. | [direnv](https://direnv.net/) |

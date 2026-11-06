@@ -91,6 +91,9 @@ install_windows() {
         install_winget_if_missing "GoLang.Go" "go"
         install_go_dev_packages "go"
         ;;
+      java)
+        install_winget_if_missing "Microsoft.OpenJDK.21" "java"
+        ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
         ;;

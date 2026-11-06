@@ -54,8 +54,8 @@ Bundle targets:
   ai    = base tools + AI package profiles for python/go/node
 
 Canonical tools:
-  git, gpg, curl, wget, unzip, python3, nvm, node, golang, kubectl, helm,
-  direnv, kind, stern, kubeseal, httpie, rg, fd, bat, eza, fzf, gh,
+  git, gpg, curl, wget, unzip, python3, nvm, node, golang, java, kubectl,
+  helm, direnv, kind, stern, kubeseal, httpie, rg, fd, bat, eza, fzf, gh,
   terraform, tflint, k9s, trivy, docker, dotnetcore, vscode, gcloud, aws,
   eksctl, az, doctl, jq, yq, postgres, redis, mysql, clickhouse, mongodb,
   rabbitmq, elasticsearch, kafka, git-config, git-signing, ssh-key, identity
@@ -345,6 +345,14 @@ uninstall_tool() {
             rm -rf /usr/local/go
           fi
         fi
+      fi
+      ;;
+    java)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "default-jdk" "java"
+        remove_binary "java"
       fi
       ;;
     helm)

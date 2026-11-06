@@ -199,6 +199,9 @@ install_linux() {
         export PATH="$PATH:/usr/local/go/bin:$HOME/go/bin"
         install_go_dev_packages "go"
         ;;
+      java)
+        install_apt_pkg_if_missing "default-jdk" "java"
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then

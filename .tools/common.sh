@@ -23,6 +23,7 @@ FULL_BUNDLE=(
   nvm
   node
   golang
+  java
   kubectl
   helm
   direnv
@@ -69,6 +70,7 @@ CLOUD_BUNDLE=(
   nvm
   node
   golang
+  java
   kubectl
   helm
   direnv
@@ -696,6 +698,9 @@ canonical_tool_name() {
       ;;
     go|golang)
       echo "golang"
+      ;;
+    java|jdk|openjdk|temurin)
+      echo "java"
       ;;
     node-core)
       echo "node"

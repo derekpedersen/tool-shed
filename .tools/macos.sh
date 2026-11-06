@@ -147,6 +147,9 @@ install_mac() {
         export PATH="$PATH:/usr/local/go/bin:/opt/homebrew/bin:$HOME/go/bin"
         install_go_dev_packages "go"
         ;;
+      java)
+        install_brew_formula_if_missing "openjdk"
+        ;;
       nvm)
         echo "Installing nvm..."
         if ! [ -d "$HOME/.nvm" ]; then
