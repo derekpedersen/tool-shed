@@ -1,23 +1,27 @@
-# git-config
+# Git Config Helpers
 
-Module for git-config-related tooling and shell helpers.
+This module provides Git configuration helpers for standard local developer setup and shell convenience patterns. Official site: https://git-scm.com/
+
+## What it is used for
+
+- Applying shared Git identity and alias conventions
+- Automating common developer Git configuration tasks
+- Keeping repo setup consistent across local environments
+- Supporting a faster bootstrap for new dev machines
 
 ## Files
 
-- install.sh: install git-config through the central installer runtime.
-- uninstall.sh: uninstall git-config through the central installer runtime.
-- install.windows.ps1: PowerShell wrapper for git-config installation on Windows.
+- install.sh: install the Git config helper through the central installer runtime
+- uninstall.sh: uninstall the Git config helper through the central installer runtime
+- install.windows.ps1: PowerShell wrapper for Git config helper installation on Windows
 
 ## Usage
 
 From repo root:
 
 ```bash
-bash ./tools.install.sh git-config
-```
-
-```bash
-bash ./tools.uninstall.sh git-config
+bash ./.tools/install.sh git-config
+bash ./.tools/uninstall.sh git-config
 ```
 
 PowerShell (Windows):

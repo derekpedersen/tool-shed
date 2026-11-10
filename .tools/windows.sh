@@ -91,6 +91,9 @@ install_windows() {
         install_winget_if_missing "GoLang.Go" "go"
         install_go_dev_packages "go"
         ;;
+      java)
+        install_winget_if_missing "Microsoft.OpenJDK.21" "java"
+        ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
         ;;
@@ -99,6 +102,51 @@ install_windows() {
         ;;
       helm)
         install_winget_if_missing "Helm.Helm" "helm"
+        ;;
+      direnv)
+        install_winget_if_missing "direnv.direnv" "direnv"
+        ;;
+      kind)
+        install_winget_if_missing "kind.kind" "kind"
+        ;;
+      stern)
+        install_winget_if_missing "stern.stern" "stern"
+        ;;
+      kubeseal)
+        install_winget_if_missing "bitnami-labs.kubeseal" "kubeseal"
+        ;;
+      httpie)
+        install_winget_if_missing "HTTPie.HTTPie" "http"
+        ;;
+      rg)
+        install_winget_if_missing "BurntSushi.ripgrep.MSVC" "rg"
+        ;;
+      fd)
+        install_winget_if_missing "sharkdp.fd" "fd"
+        ;;
+      bat)
+        install_winget_if_missing "sharkdp.bat" "bat"
+        ;;
+      eza)
+        install_winget_if_missing "eza-community.eza" "eza"
+        ;;
+      fzf)
+        install_winget_if_missing "junegunn.fzf" "fzf"
+        ;;
+      gh)
+        install_winget_if_missing "GitHub.cli" "gh"
+        ;;
+      terraform)
+        install_winget_if_missing "Hashicorp.Terraform" "terraform"
+        ;;
+      tflint)
+        install_winget_if_missing "TFLint.TFLint" "tflint"
+        ;;
+      k9s)
+        install_winget_if_missing "derailed.k9s" "k9s"
+        ;;
+      trivy)
+        install_winget_if_missing "AquaSecurity.Trivy" "trivy"
         ;;
       docker)
         install_winget_if_missing "Docker.DockerDesktop" "docker"
@@ -199,6 +247,51 @@ uninstall_windows() {
       ;;
     helm)
       remove_winget_if_present "Helm.Helm"
+      ;;
+    direnv)
+      remove_winget_if_present "direnv.direnv"
+      ;;
+    kind)
+      remove_winget_if_present "kind.kind"
+      ;;
+    stern)
+      remove_winget_if_present "stern.stern"
+      ;;
+    kubeseal)
+      remove_winget_if_present "bitnami-labs.kubeseal"
+      ;;
+    httpie)
+      remove_winget_if_present "HTTPie.HTTPie"
+      ;;
+    rg)
+      remove_winget_if_present "BurntSushi.ripgrep.MSVC"
+      ;;
+    fd)
+      remove_winget_if_present "sharkdp.fd"
+      ;;
+    bat)
+      remove_winget_if_present "sharkdp.bat"
+      ;;
+    eza)
+      remove_winget_if_present "eza-community.eza"
+      ;;
+    fzf)
+      remove_winget_if_present "junegunn.fzf"
+      ;;
+    gh)
+      remove_winget_if_present "GitHub.cli"
+      ;;
+    terraform)
+      remove_winget_if_present "Hashicorp.Terraform"
+      ;;
+    tflint)
+      remove_winget_if_present "TFLint.TFLint"
+      ;;
+    k9s)
+      remove_winget_if_present "derailed.k9s"
+      ;;
+    trivy)
+      remove_winget_if_present "AquaSecurity.Trivy"
       ;;
     docker)
       remove_winget_if_present "Docker.DockerDesktop"

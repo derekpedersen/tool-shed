@@ -65,6 +65,51 @@ install_mac() {
         install_brew_formula_if_missing "helm"
         configure_helm_completion
         ;;
+      direnv)
+        install_brew_formula_if_missing "direnv"
+        ;;
+      kind)
+        install_brew_formula_if_missing "kind"
+        ;;
+      stern)
+        install_brew_formula_if_missing "stern"
+        ;;
+      kubeseal)
+        install_brew_formula_if_missing "kubeseal"
+        ;;
+      httpie)
+        install_brew_formula_if_missing "httpie"
+        ;;
+      rg)
+        install_brew_formula_if_missing "ripgrep" "rg"
+        ;;
+      fd)
+        install_brew_formula_if_missing "fd" "fd"
+        ;;
+      bat)
+        install_brew_formula_if_missing "bat" "bat"
+        ;;
+      eza)
+        install_brew_formula_if_missing "eza" "eza"
+        ;;
+      fzf)
+        install_brew_formula_if_missing "fzf" "fzf"
+        ;;
+      gh)
+        install_brew_formula_if_missing "gh"
+        ;;
+      terraform)
+        install_brew_formula_if_missing "terraform"
+        ;;
+      tflint)
+        install_brew_formula_if_missing "tflint"
+        ;;
+      k9s)
+        install_brew_formula_if_missing "k9s"
+        ;;
+      trivy)
+        install_brew_formula_if_missing "trivy"
+        ;;
       kubectl)
         install_brew_formula_if_missing "kubectl"
         configure_kubectl_completion
@@ -101,6 +146,9 @@ install_mac() {
         install_brew_formula_if_missing "go"
         export PATH="$PATH:/usr/local/go/bin:/opt/homebrew/bin:$HOME/go/bin"
         install_go_dev_packages "go"
+        ;;
+      java)
+        install_brew_formula_if_missing "openjdk"
         ;;
       nvm)
         echo "Installing nvm..."
