@@ -10,7 +10,7 @@ update_linux_direct() (
   set -euo pipefail
   local tool="$1" architecture version url checksum archive binary metadata asset digest
   case "$tool" in
-    golang|kubectl|helm|eksctl|doctl|yq|scala) ;;
+    golang|kubectl|helm|eksctl|doctl|yq|scala|kind|stern|kubeseal|terraform|tflint|k9s|trivy) ;;
     *) update_skip "$tool has no supported verified direct updater; use its original installation manager."; return 3 ;;
   esac
   if [[ "${DRY_RUN:-false}" == true ]]; then
@@ -56,6 +56,15 @@ update_linux_direct() (
       checksum="$(curl -fsSL "$url.sha256sum" | awk '{print $1}')"
       binary="linux-$architecture/helm"
       ;;
+    terraform)
+      metadata="$(curl -fsSL https://api.github.com/repos/hashicorp/terraform/releases/latest)"
+      version="$(jq -er .tag_name <<< "$metadata")"
+      version="${version#v}"
+      archive="terraform_${version}_linux_${architecture}.zip"
+      url="https://releases.hashicorp.com/terraform/$version/$archive"
+      checksum="$(curl -fsSL "https://releases.hashicorp.com/terraform/$version/terraform_${version}_SHA256SUMS" | awk -v file="$archive" '$2 == file {print $1; exit}')"
+      binary=terraform
+      ;;
     *)
       local repository asset_name
       case "$tool" in
@@ -63,6 +72,12 @@ update_linux_direct() (
         doctl) repository=digitalocean/doctl ;;
         yq) repository=mikefarah/yq ;;
         scala) repository=VirtusLab/scala-cli ;;
+        kind) repository=kubernetes-sigs/kind ;;
+        stern) repository=stern/stern ;;
+        kubeseal) repository=bitnami-labs/sealed-secrets ;;
+        tflint) repository=terraform-linters/tflint ;;
+        k9s) repository=derailed/k9s ;;
+        trivy) repository=aquasecurity/trivy ;;
       esac
       metadata="$(curl -fsSL "https://api.github.com/repos/$repository/releases/latest")"
       version="$(jq -er .tag_name <<< "$metadata")"
@@ -70,6 +85,17 @@ update_linux_direct() (
         eksctl) asset_name="eksctl_Linux_$architecture.tar.gz"; binary=eksctl ;;
         doctl) asset_name="doctl-${version#v}-linux-$architecture.tar.gz"; binary=doctl ;;
         yq) asset_name="yq_linux_$architecture"; binary=yq ;;
+        kind) asset_name="kind-linux-$architecture"; binary=kind ;;
+        stern) asset_name="stern_linux_${architecture}.tar.gz"; binary=stern ;;
+        kubeseal) asset_name="kubeseal-linux-$architecture"; binary=kubeseal ;;
+        tflint) asset_name="tflint_linux_${architecture}.zip"; binary=tflint ;;
+        k9s) asset_name="k9s_Linux_${architecture}.tar.gz"; binary=k9s ;;
+        trivy)
+          local trivy_platform=64bit
+          [[ "$architecture" != arm64 ]] || trivy_platform=ARM64
+          asset_name="trivy_${version#v}_Linux-$trivy_platform.tar.gz"
+          binary=trivy
+          ;;
         scala)
           local scala_arch=x86_64
           [[ "$architecture" != arm64 ]] || scala_arch=aarch64
@@ -78,7 +104,10 @@ update_linux_direct() (
           asset_name="scala-cli-$scala_arch-$scala_os.gz"; binary=scala-cli
           ;;
       esac
-      asset="$(jq -cer --arg name "$asset_name" '.assets[] | select(.name == $name)' <<< "$metadata")"
+      if ! asset="$(jq -cer --arg name "$asset_name" '.assets[] | select(.name == $name)' <<< "$metadata")"; then
+        update_skip "$tool release $version does not publish the expected asset $asset_name."
+        return 3
+      fi
       url="$(jq -er .browser_download_url <<< "$asset")"
       digest="$(jq -r '.digest // empty' <<< "$asset")"
       if [[ "$digest" != sha256:* ]]; then
@@ -113,7 +142,9 @@ update_linux_direct() (
         tar -xzf "$temporary/$archive" -C "$temporary" "$binary"
       fi
       ;;
+    *.zip) unzip -q "$temporary/$archive" -d "$temporary" ;;
     *.gz) gzip -dc "$temporary/$archive" > "$temporary/$binary" ;;
+    *) [[ "$archive" == "$binary" ]] || cp "$temporary/$archive" "$temporary/$binary" ;;
   esac
   if [[ "$tool" == golang ]]; then
     tar -xzf "$temporary/$archive" -C "$temporary"

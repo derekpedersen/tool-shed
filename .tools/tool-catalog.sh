@@ -35,7 +35,7 @@ catalog_resolve_targets() {
 
   for item in "$@"; do
     if [[ "$item" == "all" ]]; then
-      expanded+=("${UPDATEABLE_TOOLS[@]}")
+      expanded+=("${ALL_TOOLS[@]}")
     else
       while IFS= read -r expanded_item; do
         [[ -z "$expanded_item" ]] && continue
@@ -71,6 +71,14 @@ tool_package_specs() {
     linux:unzip) emit_tool_package apt unzip ;;
     linux:python3) emit_tool_package apt python3 ;;
     linux:r) emit_tool_package apt r-base ;;
+    linux:direnv) emit_tool_package apt direnv ;;
+    linux:httpie) emit_tool_package apt httpie ;;
+    linux:rg) emit_tool_package apt ripgrep ;;
+    linux:fd) emit_tool_package apt fd-find ;;
+    linux:bat) emit_tool_package apt bat ;;
+    linux:eza) emit_tool_package apt eza ;;
+    linux:fzf) emit_tool_package apt fzf ;;
+    linux:gh) emit_tool_package apt gh ;;
     linux:cpp) emit_tool_package apt build-essential ;;
     linux:java) emit_tool_package apt temurin-25-jdk ;;
     linux:docker)
@@ -97,6 +105,21 @@ tool_package_specs() {
       emit_tool_package brew-formula bash-completion
       emit_tool_package brew-formula vim
       ;;
+    mac:direnv) emit_tool_package brew-formula direnv ;;
+    mac:kind) emit_tool_package brew-formula kind ;;
+    mac:stern) emit_tool_package brew-formula stern ;;
+    mac:kubeseal) emit_tool_package brew-formula kubeseal ;;
+    mac:httpie) emit_tool_package brew-formula httpie ;;
+    mac:rg) emit_tool_package brew-formula ripgrep ;;
+    mac:fd) emit_tool_package brew-formula fd ;;
+    mac:bat) emit_tool_package brew-formula bat ;;
+    mac:eza) emit_tool_package brew-formula eza ;;
+    mac:fzf) emit_tool_package brew-formula fzf ;;
+    mac:gh) emit_tool_package brew-formula gh ;;
+    mac:terraform) emit_tool_package brew-formula terraform ;;
+    mac:tflint) emit_tool_package brew-formula tflint ;;
+    mac:k9s) emit_tool_package brew-formula k9s ;;
+    mac:trivy) emit_tool_package brew-formula trivy ;;
     mac:gpg) emit_tool_package brew-formula gnupg ;;
     mac:jq) emit_tool_package brew-formula jq ;;
     mac:yq) emit_tool_package brew-formula yq ;;
@@ -130,6 +153,21 @@ tool_package_specs() {
     windows:wget) emit_tool_package winget GnuWin32.Wget ;;
     windows:unzip) emit_tool_package winget GnuWin32.UnZip ;;
     windows:python3) emit_tool_package winget Python.Python.3.12 ;;
+    windows:direnv) emit_tool_package winget direnv.direnv ;;
+    windows:kind) emit_tool_package winget kind.kind ;;
+    windows:stern) emit_tool_package winget stern.stern ;;
+    windows:kubeseal) emit_tool_package winget bitnami-labs.kubeseal ;;
+    windows:httpie) emit_tool_package winget HTTPie.HTTPie ;;
+    windows:rg) emit_tool_package winget BurntSushi.ripgrep.MSVC ;;
+    windows:fd) emit_tool_package winget sharkdp.fd ;;
+    windows:bat) emit_tool_package winget sharkdp.bat ;;
+    windows:eza) emit_tool_package winget eza-community.eza ;;
+    windows:fzf) emit_tool_package winget junegunn.fzf ;;
+    windows:gh) emit_tool_package winget GitHub.cli ;;
+    windows:terraform) emit_tool_package winget Hashicorp.Terraform ;;
+    windows:tflint) emit_tool_package winget TFLint.TFLint ;;
+    windows:k9s) emit_tool_package winget derailed.k9s ;;
+    windows:trivy) emit_tool_package winget AquaSecurity.Trivy ;;
     windows:nvm) emit_tool_package winget CoreyButler.NVMforWindows ;;
     windows:node) emit_tool_package winget OpenJS.NodeJS.LTS ;;
     windows:golang) emit_tool_package winget GoLang.Go ;;
@@ -164,9 +202,10 @@ tool_package_specs() {
 
 tool_executable() {
   case "$1" in
-    git|gpg|curl|wget|unzip|R|java|kubectl|helm|docker|code|gcloud|aws|eksctl|az|doctl|jq|yq|julia|scala-cli|juliaup|rustc|rustup|Rscript|Rscript.exe|redis-server|mysql|clickhouse|mongod|rabbitmq-server|elasticsearch|kafka-server-start|nvm|node|go|dotnet|psql|cc)
+    git|gpg|curl|wget|unzip|R|java|kubectl|helm|docker|code|gcloud|aws|eksctl|az|doctl|jq|yq|julia|scala-cli|juliaup|rustc|rustup|Rscript|Rscript.exe|redis-server|mysql|clickhouse|mongod|rabbitmq-server|elasticsearch|kafka-server-start|nvm|node|go|dotnet|psql|cc|direnv|kind|stern|kubeseal|rg|fd|bat|eza|fzf|gh|terraform|tflint|k9s|trivy)
       printf '%s\n' "$1"
       ;;
+    httpie) printf '%s\n' http ;;
     python3) printf '%s\n' python3 ;;
     r) printf '%s\n' R ;;
     cpp)
@@ -308,7 +347,7 @@ catalog_tool_update_source() {
     rust) printf '%s\n' "rustup" ;;
     julia) printf '%s\n' "Juliaup" ;;
     scala) printf '%s\n' "Scala CLI" ;;
-    golang|helm|kubectl|eksctl|doctl|yq|aws) printf '%s\n' "upstream binary" ;;
+    golang|helm|kubectl|eksctl|doctl|yq|aws|kind|stern|kubeseal|terraform|tflint|k9s|trivy) printf '%s\n' "upstream binary" ;;
     *) printf '%s\n' "external or system-managed" ;;
   esac
 }

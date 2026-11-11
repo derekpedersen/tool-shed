@@ -163,8 +163,27 @@ echo 'Testing every installable module has a read-only update entrypoint'
 for module in */install.sh; do
   test -f "${module%/install.sh}/update.sh"
 done
-for bundle in full cloud services ai; do
+for bundle in full cloud services ai all; do
   bash update.sh "$bundle" --dry-run > /dev/null
+done
+
+echo 'Testing every installable module across install, list, update, and uninstall'
+for module in */install.sh; do
+  tool="${module%/install.sh}"
+  bash .tools/install.sh "$tool" --dry-run > /dev/null
+  bash .tools/list.sh "$tool" > /dev/null
+  bash .tools/update.sh "$tool" --dry-run > /dev/null
+  bash .tools/uninstall.sh "$tool" --dry-run > /dev/null
+done
+bash .tools/list.sh all > /dev/null
+
+echo 'Testing direct binary updater dry-run dispatch'
+mkdir -p "$temporary/bin"
+for tool in kind stern kubeseal terraform tflint k9s trivy; do
+  ln -sf "$(type -P true)" "$temporary/bin/$tool"
+  printf 'direct\t-\t-\tnone\t-\t1.0.0\n' > "$TOOL_SHED_STATE_DIR/tools/$tool"
+  output="$(PATH="$temporary/bin:$PATH" bash .tools/update.sh "$tool" --dry-run)"
+  [[ "$output" == *"would resolve an allowed $tool release"* ]]
 done
 
 echo 'Testing install state hooks without executing real installers'

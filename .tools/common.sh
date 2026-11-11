@@ -175,7 +175,24 @@ UPDATEABLE_TOOLS=(
   rabbitmq
   elasticsearch
   kafka
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
 )
+
+ALL_TOOLS=("${UPDATEABLE_TOOLS[@]}" git-config git-signing identity ssh-key)
 
 COMMON_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
 REPO_ROOT="$(cd "$COMMON_TOOLS_DIR/.." && pwd)"
@@ -833,48 +850,7 @@ canonical_tool_name() {
     node-core)
       echo "node"
       ;;
-    node-full)
-      echo "node"
-
-  UPDATEABLE_TOOLS=(
-    git
-    gpg
-    curl
-    wget
-    unzip
-    python3
-    r
-    nvm
-    node
-    golang
-    cpp
-    rust
-    java
-    scala
-    julia
-    kubectl
-    helm
-    docker
-    dotnetcore
-    vscode
-    gcloud
-    aws
-    eksctl
-    az
-    doctl
-    jq
-    yq
-    postgres
-    redis
-    mysql
-    clickhouse
-    mongodb
-    rabbitmq
-    elasticsearch
-    kafka
-  )
-      ;;
-    node)
+    node-full|node)
       echo "node"
       ;;
     *)

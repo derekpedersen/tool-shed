@@ -39,7 +39,7 @@ if [[ "$show_help" == true ]]; then
 fi
 
 if [[ ${#targets[@]} -eq 0 ]]; then
-  selected=("${UPDATEABLE_TOOLS[@]}")
+  selected=("${ALL_TOOLS[@]}")
 else
   selected=()
   while IFS= read -r tool; do
