@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+update_mac() {
+  update_prepare_packages "$1" "$STATE_MANAGER" || return $?
+  case "$STATE_MANAGER" in
+    brew-formula) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade --formula "${UPDATE_PACKAGES[@]}" ;;
+    brew-cask) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade --cask "${UPDATE_PACKAGES[@]}" ;;
+  esac
+}
+
 install_brew_formula_if_missing() {
   local formula_name="$1"
   local binary_name="${2:-$formula_name}"
@@ -37,9 +45,22 @@ install_brew_cask_if_missing() {
 
 install_mac() {
   BREW_SKIPPED_COUNT=0
+  local pkg
+  local requires_brew=false
+
+  for pkg in "$@"; do
+    case "$pkg" in
+      cpp|julia|rust|scala|nvm|node|curl)
+        ;;
+      *)
+        requires_brew=true
+        ;;
+    esac
+  done
+
   echo "Detected macOS"
 
-  if ! command -v brew >/dev/null 2>&1; then
+  if [[ "$requires_brew" == true ]] && ! command -v brew >/dev/null 2>&1; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     if [[ -f /opt/homebrew/bin/brew ]]; then
@@ -148,7 +169,29 @@ install_mac() {
         install_go_dev_packages "go"
         ;;
       java)
-        install_brew_formula_if_missing "openjdk"
+        install_brew_cask_if_missing "temurin@25"
+        ;;
+      cpp)
+        if ! xcode-select -p >/dev/null 2>&1; then
+          echo "Requesting Apple Command Line Tools installation..."
+          xcode-select --install || {
+            if ! xcode-select -p >/dev/null 2>&1; then
+              return 1
+            fi
+          }
+        fi
+        ;;
+      rust)
+        install_rustup_if_missing
+        ;;
+      scala)
+        install_scala_cli_if_missing
+        ;;
+      r)
+        install_brew_formula_if_missing "r" "R"
+        ;;
+      julia)
+        install_juliaup_if_missing
         ;;
       nvm)
         echo "Installing nvm..."

@@ -51,7 +51,32 @@ case "$OS_NAME" in
     ;;
 esac
 
+source "$TOOLS_DIR/tool-catalog.sh"
+source "$TOOLS_DIR/state.sh"
+
 module_install() {
+  local tool already_present=false
+  tool="$(canonical_tool_name "$1")"
+  case "$tool" in
+    identity|git-config|git-signing|ssh-key)
+      module_install_impl "$tool"
+      return
+      ;;
+  esac
+  if catalog_tool_present "$tool"; then
+    already_present=true
+  fi
+  module_install_impl "$tool"
+  if [[ "${DRY_RUN:-false}" != true ]]; then
+    if [[ "$already_present" == false ]] || tool_state_has "$tool"; then
+      tool_state_record "$tool"
+    else
+      echo "Existing installation left unmanaged: $tool (use .tools/update.sh --adopt $tool to opt in)."
+    fi
+  fi
+}
+
+module_install_impl() {
   local tool="$(canonical_tool_name "$1")"
 
   case "$tool" in
@@ -161,6 +186,9 @@ module_uninstall() {
 
   if [[ -f "$REPO_ROOT/.tools/uninstall.sh" ]]; then
     TOOLS_UNINSTALL_MODULE_INTERNAL=1 bash "$REPO_ROOT/.tools/uninstall.sh" "$tool"
+    if ! catalog_tool_present "$tool"; then
+      tool_state_remove "$tool"
+    fi
   else
     echo "Missing required script: $REPO_ROOT/.tools/uninstall.sh"
     return 1

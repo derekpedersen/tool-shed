@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+update_windows() {
+  update_prepare_packages "$1" "$STATE_MANAGER" || return $?
+  local package status
+  for package in "${UPDATE_PACKAGES[@]}"; do
+    local options=(upgrade --exact --id "$package" --disable-interactivity --accept-source-agreements --accept-package-agreements)
+    [[ "$STATE_SOURCE" == - ]] || options+=(--source "$STATE_SOURCE")
+    status=0
+    update_run winget "${options[@]}" || status=$?
+    case "$status" in
+      0) ;;
+      43) echo "No applicable upgrade for $package." ;;
+      *) return "$status" ;;
+    esac
+  done
+}
+
 # ============================================================
 # Windows installer support
 # ============================================================
@@ -36,6 +52,32 @@ install_winget_if_missing() {
   fi
 
   winget install --id "$package_id" --exact --silent --disable-interactivity --accept-source-agreements --accept-package-agreements
+}
+
+install_winget_with_override_if_missing() {
+  local package_id="$1"
+  local override_args="$2"
+
+  if winget list --exact --id "$package_id" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  winget install --id "$package_id" --exact --silent --disable-interactivity --accept-source-agreements --accept-package-agreements --override "$override_args"
+}
+
+install_winget_msstore_if_missing() {
+  local package_id="$1"
+  local binary_name="$2"
+
+  if command -v "$binary_name" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if winget list --exact --id "$package_id" --source msstore >/dev/null 2>&1; then
+    return 0
+  fi
+
+  winget install --id "$package_id" --exact --source msstore --silent --disable-interactivity --accept-source-agreements --accept-package-agreements
 }
 
 remove_winget_if_present() {
@@ -92,7 +134,26 @@ install_windows() {
         install_go_dev_packages "go"
         ;;
       java)
-        install_winget_if_missing "Microsoft.OpenJDK.21" "java"
+        install_winget_if_missing "EclipseAdoptium.Temurin.25.JDK" "javac"
+        ;;
+      cpp)
+        install_winget_with_override_if_missing "Microsoft.VisualStudio.2022.BuildTools" "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.26100"
+        ;;
+      rust)
+        export PATH="$HOME/.cargo/bin:$PATH"
+        install_winget_if_missing "Rustlang.Rustup" "rustup"
+        if command -v rustup >/dev/null 2>&1; then
+          ensure_rustup_default
+        fi
+        ;;
+      scala)
+        install_winget_if_missing "VirtusLab.ScalaCLI" "scala-cli"
+        ;;
+      r)
+        install_winget_if_missing "RProject.R" "R"
+        ;;
+      julia)
+        install_winget_msstore_if_missing "9NJNWW8PVKMN" "julia"
         ;;
       kubectl)
         install_winget_if_missing "Kubernetes.kubectl" "kubectl"
@@ -241,6 +302,24 @@ uninstall_windows() {
       ;;
     golang)
       remove_winget_if_present "GoLang.Go"
+      ;;
+    java)
+      remove_winget_if_present "EclipseAdoptium.Temurin.25.JDK"
+      ;;
+    cpp)
+      remove_winget_if_present "Microsoft.VisualStudio.2022.BuildTools"
+      ;;
+    rust)
+      echo "Rustup, Rust toolchains, and Cargo data are user-managed and were left intact."
+      ;;
+    scala)
+      remove_winget_if_present "VirtusLab.ScalaCLI"
+      ;;
+    r)
+      remove_winget_if_present "RProject.R"
+      ;;
+    julia)
+      echo "Juliaup, Julia channels, and the Julia depot are user-managed and were left intact."
       ;;
     kubectl|kubernetes-cli)
       remove_winget_if_present "Kubernetes.kubectl"

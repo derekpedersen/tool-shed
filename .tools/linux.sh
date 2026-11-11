@@ -1,6 +1,187 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+update_linux() {
+  update_prepare_packages "$1" apt || return $?
+  update_privileged apt-get install --only-upgrade --no-remove -y -- "${UPDATE_PACKAGES[@]}"
+}
+
+update_linux_direct() (
+  set -euo pipefail
+  local tool="$1" architecture version url checksum archive binary metadata asset digest
+  case "$tool" in
+    golang|kubectl|helm|eksctl|doctl|yq|scala|kind|stern|kubeseal|terraform|tflint|k9s|trivy) ;;
+    *) update_skip "$tool has no supported verified direct updater; use its original installation manager."; return 3 ;;
+  esac
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    echo "DRY RUN: would resolve an allowed $tool release, verify its SHA256 checksum, and replace only its recorded installation."
+    return 0
+  fi
+  command -v jq >/dev/null 2>&1 || { echo "jq is required to parse upstream release metadata." >&2; return 1; }
+  command -v curl >/dev/null 2>&1 || { echo "curl is required to download upstream releases." >&2; return 1; }
+  case "$(uname -m)" in
+    x86_64) architecture=amd64 ;;
+    aarch64|arm64) architecture=arm64 ;;
+    *) update_skip "Unsupported update architecture: $(uname -m)"; return 3 ;;
+  esac
+  local temporary
+  temporary="$(mktemp -d)"
+  trap 'rm -rf "$temporary"' EXIT
+  case "$tool" in
+    golang)
+      if [[ "$STATE_PATH" != /usr/local/go/bin/go ]]; then
+        update_skip "Go must be managed at /usr/local/go; refusing to replace $STATE_PATH."
+        return 3
+      fi
+      metadata="$(curl -fsSL 'https://go.dev/dl/?mode=json')"
+      version="$(jq -er 'first(.[] | select(.stable)) | .version' <<< "$metadata")"
+      asset="$(jq -cer --arg version "$version" --arg arch "$architecture" '.[] | select(.version == $version) | first(.files[] | select(.os == "linux" and .arch == $arch and .kind == "archive"))' <<< "$metadata")"
+      url="https://go.dev/dl/$(jq -er .filename <<< "$asset")"
+      checksum="$(jq -er .sha256 <<< "$asset")"
+      archive=go.tar.gz
+      binary=go/bin/go
+      ;;
+    kubectl)
+      version="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
+      url="https://dl.k8s.io/release/$version/bin/linux/$architecture/kubectl"
+      checksum="$(curl -fsSL "$url.sha256")"
+      archive=kubectl
+      binary=kubectl
+      ;;
+    helm)
+      metadata="$(curl -fsSL https://api.github.com/repos/helm/helm/releases/latest)"
+      version="$(jq -er .tag_name <<< "$metadata")"
+      archive="helm-$version-linux-$architecture.tar.gz"
+      url="https://get.helm.sh/$archive"
+      checksum="$(curl -fsSL "$url.sha256sum" | awk '{print $1}')"
+      binary="linux-$architecture/helm"
+      ;;
+    terraform)
+      metadata="$(curl -fsSL https://api.github.com/repos/hashicorp/terraform/releases/latest)"
+      version="$(jq -er .tag_name <<< "$metadata")"
+      version="${version#v}"
+      archive="terraform_${version}_linux_${architecture}.zip"
+      url="https://releases.hashicorp.com/terraform/$version/$archive"
+      checksum="$(curl -fsSL "https://releases.hashicorp.com/terraform/$version/terraform_${version}_SHA256SUMS" | awk -v file="$archive" '$2 == file {print $1; exit}')"
+      binary=terraform
+      ;;
+    *)
+      local repository asset_name
+      case "$tool" in
+        eksctl) repository=eksctl-io/eksctl ;;
+        doctl) repository=digitalocean/doctl ;;
+        yq) repository=mikefarah/yq ;;
+        scala) repository=VirtusLab/scala-cli ;;
+        kind) repository=kubernetes-sigs/kind ;;
+        stern) repository=stern/stern ;;
+        kubeseal) repository=bitnami-labs/sealed-secrets ;;
+        tflint) repository=terraform-linters/tflint ;;
+        k9s) repository=derailed/k9s ;;
+        trivy) repository=aquasecurity/trivy ;;
+      esac
+      metadata="$(curl -fsSL "https://api.github.com/repos/$repository/releases/latest")"
+      version="$(jq -er .tag_name <<< "$metadata")"
+      case "$tool" in
+        eksctl) asset_name="eksctl_Linux_$architecture.tar.gz"; binary=eksctl ;;
+        doctl) asset_name="doctl-${version#v}-linux-$architecture.tar.gz"; binary=doctl ;;
+        yq) asset_name="yq_linux_$architecture"; binary=yq ;;
+        kind) asset_name="kind-linux-$architecture"; binary=kind ;;
+        stern) asset_name="stern_linux_${architecture}.tar.gz"; binary=stern ;;
+        kubeseal) asset_name="kubeseal-linux-$architecture"; binary=kubeseal ;;
+        tflint) asset_name="tflint_linux_${architecture}.zip"; binary=tflint ;;
+        k9s) asset_name="k9s_Linux_${architecture}.tar.gz"; binary=k9s ;;
+        trivy)
+          local trivy_platform=64bit
+          [[ "$architecture" != arm64 ]] || trivy_platform=ARM64
+          asset_name="trivy_${version#v}_Linux-$trivy_platform.tar.gz"
+          binary=trivy
+          ;;
+        scala)
+          local scala_arch=x86_64
+          [[ "$architecture" != arm64 ]] || scala_arch=aarch64
+          local scala_os=pc-linux
+          [[ "$TOOL_CATALOG_PLATFORM" != mac ]] || scala_os=apple-darwin
+          asset_name="scala-cli-$scala_arch-$scala_os.gz"; binary=scala-cli
+          ;;
+      esac
+      if ! asset="$(jq -cer --arg name "$asset_name" '.assets[] | select(.name == $name)' <<< "$metadata")"; then
+        update_skip "$tool release $version does not publish the expected asset $asset_name."
+        return 3
+      fi
+      url="$(jq -er .browser_download_url <<< "$asset")"
+      digest="$(jq -r '.digest // empty' <<< "$asset")"
+      if [[ "$digest" != sha256:* ]]; then
+        update_skip "$tool release $version does not publish a SHA256 asset digest; manual verification is required."
+        return 3
+      fi
+      checksum="${digest#sha256:}"
+      archive="$asset_name"
+      ;;
+  esac
+  if ! update_version_allowed "$STATE_VERSION" "$version"; then
+    update_skip "$tool ($STATE_VERSION -> $version) requires --allow-major."
+    return 3
+  fi
+  local installed_release candidate_release
+  if [[ "$STATE_VERSION" =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+    installed_release="${BASH_REMATCH[1]}"
+    if [[ "$version" =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+      candidate_release="${BASH_REMATCH[1]}"
+      if [[ "$installed_release" == "$candidate_release" ]]; then
+        echo "$tool is already at release $version."
+        return 0
+      fi
+    fi
+  fi
+  case "$url" in https://*) ;; *) echo "Refusing non-HTTPS release URL." >&2; return 1 ;; esac
+  curl -fsSL "$url" -o "$temporary/$archive"
+  update_checksum "$temporary/$archive" "$checksum"
+  case "$archive" in
+    *.tar.gz)
+      if [[ "$tool" != golang ]]; then
+        tar -xzf "$temporary/$archive" -C "$temporary" "$binary"
+      fi
+      ;;
+    *.zip) unzip -q "$temporary/$archive" -d "$temporary" ;;
+    *.gz) gzip -dc "$temporary/$archive" > "$temporary/$binary" ;;
+    *) [[ "$archive" == "$binary" ]] || cp "$temporary/$archive" "$temporary/$binary" ;;
+  esac
+  if [[ "$tool" == golang ]]; then
+    tar -xzf "$temporary/$archive" -C "$temporary"
+    chmod +x "$temporary/$binary"
+    "$temporary/$binary" version
+    if [[ -e /usr/local/go.tool-shed-backup ]]; then
+      echo "A previous Go backup exists at /usr/local/go.tool-shed-backup; review it before updating." >&2
+      return 1
+    fi
+    update_privileged mv /usr/local/go /usr/local/go.tool-shed-backup
+    if ! update_privileged mv "$temporary/go" /usr/local/go; then
+      update_privileged mv /usr/local/go.tool-shed-backup /usr/local/go
+      return 1
+    fi
+    echo "Previous Go installation preserved at /usr/local/go.tool-shed-backup."
+  else
+    if [[ "$STATE_PATH" != "/usr/local/bin/${binary##*/}" && !( "$tool" == scala && "$STATE_PATH" == "$HOME/.local/share/scalacli/bin/scala-cli" ) ]]; then
+      update_skip "Refusing to replace an unrecognized direct installation: $STATE_PATH"
+      return 3
+    fi
+    if [[ -L "$STATE_PATH" ]]; then
+      update_skip "Refusing to overwrite symlink $STATE_PATH; use its original manager."
+      return 3
+    fi
+    local staged
+    staged="$(update_privileged mktemp "$STATE_PATH.tool-shed.XXXXXX")"
+    if ! update_privileged install -m 0755 "$temporary/$binary" "$staged"; then
+      update_privileged rm -f "$staged"
+      return 1
+    fi
+    if ! update_privileged mv -f "$staged" "$STATE_PATH"; then
+      update_privileged rm -f "$staged"
+      return 1
+    fi
+  fi
+)
+
 install_apt_pkg_if_missing() {
   local pkg="$1"
   local binary_name="${2:-$1}"
@@ -200,7 +381,46 @@ install_linux() {
         install_go_dev_packages "go"
         ;;
       java)
-        install_apt_pkg_if_missing "default-jdk" "java"
+        local adoptium_codename
+        adoptium_codename="$(linux_ubuntu_codename)"
+        if [[ -z "$adoptium_codename" ]]; then
+          echo "Unable to determine the Debian or Ubuntu release codename for the Adoptium repository." >&2
+          return 1
+        fi
+
+        install_apt_pkg_if_missing "ca-certificates" "ca-certificates"
+        install_apt_pkg_if_missing "curl" "curl"
+        install_apt_pkg_if_missing "gpg" "gpg"
+        if [[ ! -f /etc/apt/keyrings/adoptium.gpg ]]; then
+          $SUDO install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | $SUDO gpg --dearmor --yes -o /etc/apt/keyrings/adoptium.gpg
+        fi
+        $SUDO chmod a+r /etc/apt/keyrings/adoptium.gpg
+        printf 'deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb %s main\n' "$adoptium_codename" | $SUDO tee /etc/apt/sources.list.d/adoptium.list >/dev/null
+        if [[ -n "${SUDO:-}" ]]; then
+          $SUDO apt-get update
+        else
+          apt-get update
+        fi
+        install_apt_pkg_if_missing "temurin-25-jdk" "temurin-25-jdk"
+        ;;
+      cpp)
+        install_apt_pkg_if_missing "build-essential" "build-essential"
+        ;;
+      rust)
+        install_apt_pkg_if_missing "curl" "curl"
+        install_rustup_if_missing
+        ;;
+      scala)
+        install_apt_pkg_if_missing "curl" "curl"
+        install_scala_cli_if_missing
+        ;;
+      r)
+        install_apt_pkg_if_missing "r-base" "R"
+        ;;
+      julia)
+        install_apt_pkg_if_missing "curl" "curl"
+        install_juliaup_if_missing
         ;;
       nvm)
         echo "Installing nvm..."

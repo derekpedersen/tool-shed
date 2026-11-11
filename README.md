@@ -4,6 +4,92 @@ Curated shell helpers, bootstrap installers, and small operational tooling for l
 
 Think of this repo as a well-labeled shed: the helper loft holds shell shortcuts, the tool bench runs installs and uninstalls, and the service yard keeps local dependencies ready when you need them.
 
+## Quick start
+
+The root commands cover the common workflows. Preview removals and updates before
+running them for real. Curl commands download and execute the current `main` branch.
+
+From a checkout:
+
+Install:
+
+```bash
+bash ./install.sh
+```
+
+List installed tools and versions:
+
+```bash
+bash ./list.sh
+```
+
+Preview bundle removal:
+
+```bash
+bash ./uninstall.sh cloud --dry-run
+```
+
+Remove a bundle:
+
+```bash
+bash ./uninstall.sh cloud
+```
+
+Preview managed updates:
+
+```bash
+bash ./update.sh --dry-run
+```
+
+Update managed tools:
+
+```bash
+bash ./update.sh
+```
+
+Download and run without cloning the repository:
+
+Install:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/install.sh | bash
+```
+
+List installed tools and versions:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash
+```
+
+Preview bundle removal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- cloud --dry-run
+```
+
+Remove a bundle:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- cloud
+```
+
+Preview managed updates:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --dry-run
+```
+
+Update managed tools:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash
+```
+
+Uninstall requires an explicit tool or bundle. Existing installations must be
+adopted before tool-shed will update them; preview adoption with
+`bash ./update.sh --adopt cloud --dry-run`. Review scripts before piping remote
+code into Bash.
+
 ## What’s in the shed
 
 - [.bash/README.md](.bash/README.md) for shell helper usage and the helper loft
@@ -20,7 +106,7 @@ This repo intentionally separates concerns into three zones:
 | Tool bench | [.tools](.tools) | Bundle orchestration, install/uninstall controllers, OS-specific logic, and shared runtime behavior. |
 | Service yard | [.services](.services) | Docker Compose-based local dev services such as PostgreSQL, Redis, RabbitMQ, MongoDB, Grafana, and Prometheus. |
 
-The repo-root tool folders are intentionally atomized and individual. Each package such as [docker](docker), [kubectl](kubectl), [aws](aws), [gcloud](gcloud), and [git](git) has its own hook on the wall: install, uninstall, and any optional bash helpers or Windows shims.
+The repo-root tool folders are intentionally atomized and individual. Each package such as [docker](docker), [kubectl](kubectl), [aws](aws), [gcloud](gcloud), and [git](git) has its own hook on the wall: install, update, uninstall, and any optional bash helpers or Windows shims.
 
 ## Shed catalog
 
@@ -34,6 +120,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [az](az) | Azure | Azure CLI | Microsoft Azure command-line tooling and convenience helpers. | [Azure CLI](https://learn.microsoft.com/cli/azure/) |
 | [clickhouse](clickhouse) | CH | ClickHouse | ClickHouse database installer and setup helpers. | [ClickHouse](https://clickhouse.com/) |
 | [cloud](cloud) | Cloud | Multi-cloud helpers | Shared cloud-oriented bash helpers for multi-cloud status and context checks. | [Cloud computing](https://en.wikipedia.org/wiki/Cloud_computing) |
+| [cpp](cpp) | C/C++ | Native C/C++ toolchains | Platform-native compilers for Debian-based Linux, macOS, and Windows. | [C++](https://isocpp.org/) |
 | [curl](curl) | Curl | cURL | HTTP client for transfers from the shell. | [curl](https://curl.se/) |
 | [docker](docker) | Docker | Docker | Docker CLI helpers and container workflow support. | [Docker](https://www.docker.com/) |
 | [doctl](doctl) | DOCTL | DigitalOcean CLI | DigitalOcean command-line interface and convenience commands. | [doctl](https://docs.digitalocean.com/reference/doctl/) |
@@ -61,6 +148,8 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [gpg](gpg) | GPG | GNU Privacy Guard | GPG key generation and signing setup. | [GnuPG](https://gnupg.org/) |
 | [helm](helm) | Helm | Helm package manager | Helm chart helpers, release shortcuts, and version stamping tools. | [Helm](https://helm.sh/) |
 | [identity](identity) | ID | Identity setup | Combined identity/bootstrap helpers for Git, SSH, and GPG setup. | [Identity management](https://en.wikipedia.org/wiki/Identity_management) |
+| [java](java) | Java | Eclipse Temurin JDK 25 | Java 25 developer toolchain with the Java runtime and compiler. | [Eclipse Temurin](https://adoptium.net/) |
+| [julia](julia) | Julia | Juliaup-managed Julia | Stable Julia runtime and version manager; existing user channels and packages are preserved on uninstall. | [Julia](https://julialang.org/) |
 | [jq](jq) | jq | jq JSON processor | Lightweight JSON parsing and filtering from the shell. | [jq](https://jqlang.github.io/jq/) |
 | [terraform](terraform) | TF | Terraform | Infrastructure as code workflow and Terraform validation. | [Terraform](https://developer.hashicorp.com/terraform) |
 | [tflint](tflint) | TFlint | Terraform linting | Lint checks for Terraform modules and configuration. | [TFLint](https://github.com/terraform-linters/tflint) |
@@ -73,8 +162,11 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 | [nvm](nvm) | NVM | Node Version Manager | Node version switching and environment management. | [nvm](https://github.com/nvm-sh/nvm) |
 | [postgres](postgres) | PG | PostgreSQL | PostgreSQL database install and local stack support. | [PostgreSQL](https://www.postgresql.org/) |
 | [python3](python3) | Py3 | Python 3 | Python 3 runtime setup and related developer helpers. | [Python](https://www.python.org/) |
+| [r](r) | R | R interpreter | Statistical computing and graphics runtime; CRAN packages remain project-managed. | [R Project](https://www.r-project.org/) |
 | [rabbitmq](rabbitmq) | RabbitMQ | RabbitMQ | AMQP broker install and local messaging toolkit support. | [RabbitMQ](https://www.rabbitmq.com/) |
 | [redis](redis) | Redis | Redis | In-memory data store and cache setup for local apps. | [Redis](https://redis.io/) |
+| [rust](rust) | Rust | Rust stable toolchain | Per-user stable Rust toolchain managed by rustup. | [Rust](https://www.rust-lang.org/) |
+| [scala](scala) | Scala | Scala CLI | Scala 3 REPL, compiler, runner, and package tool. | [Scala](https://www.scala-lang.org/) |
 | [ssh-key](ssh-key) | SSH | SSH key bootstrap | SSH key generation and installation for remote auth. | [OpenSSH](https://www.openssh.com/) |
 | [unzip](unzip) | Unzip | Unzip utility | Zip extraction helper and wrappers for local tooling. | [Info-ZIP UnZip](https://www.info-zip.org/UnZip.html) |
 | [vscode](vscode) | VS Code | Visual Studio Code | Editor bootstrap and local environment setup for VS Code. | [VS Code](https://code.visualstudio.com/) |
@@ -95,7 +187,7 @@ The repo-root tool folders are intentionally atomized and individual. Each packa
 - [.github/copilot-instructions.md](.github/copilot-instructions.md): Copilot-specific conventions
 - [.github/dependabot.yml](.github/dependabot.yml): weekly dependency update checks for GitHub Actions, Docker, and Python packages
 
-## Quick start
+## Command details
 
 ### Use the root installer prompt
 
@@ -132,7 +224,7 @@ The installer gathers the selected helper files into a single managed file (`~/.
 Optional overrides for testing another branch or fork, or changing the managed helpers file:
 
 ```bash
-TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bash/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bash/install.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash
 TOOL_SHED_HELPERS_FILE=~/.my-helpers curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bash/install.sh | bash
 ```
 
@@ -163,10 +255,84 @@ curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools
 Optional override for testing another branch or fork during bootstrap:
 
 ```bash
-TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools/install.sh | bash -s -- full
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools/install.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash -s -- full
 ```
 
 Install output is also written to `~/.tool-shed/logs/install-<timestamp>.log` (override with `TOOL_SHED_LOG_DIR`). Dry runs are not logged.
+
+### List installed tools
+
+The standalone inventory lists supported installed tools, their live versions,
+and whether tool-shed manages them. It does not call the updater or change state.
+
+From a checkout:
+
+```bash
+bash ./list.sh
+bash ./list.sh cloud
+bash ./list.sh git jq
+```
+
+Download and run directly from GitHub (the script downloads its repository
+helpers, then inventories the local machine):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- cloud
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- git jq
+```
+
+To inspect a branch or fork, pass bootstrap settings to the receiving Bash:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash -s -- cloud
+```
+
+`bash update.sh --list` remains available as a compatibility alias for the
+standalone listing command.
+
+### Update installed tools
+
+```bash
+bash update.sh --dry-run       # Preview all recorded, installed tools
+bash update.sh                 # Update managed installations
+bash update.sh cloud           # Update installed members of one bundle
+bash jq/update.sh --dry-run    # Update one module
+```
+
+Download and run the standalone updater from GitHub. Start with `--dry-run` to
+review the managed tools it would update:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- cloud --dry-run
+```
+
+For a selected branch or fork:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | TOOL_SHED_REF=feature/my-branch TOOL_SHED_REPO=derekpedersen/tool-shed bash -s -- --dry-run
+```
+
+For installations made before state tracking was introduced, preview and explicitly
+adopt the tools you want tool-shed to manage first:
+
+```bash
+bash update.sh --adopt cloud --dry-run
+bash update.sh --adopt cloud
+```
+
+The matching remote preview and adoption commands are:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --adopt cloud --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --adopt cloud
+```
+
+Updates never install absent tools. Major-version changes, developer packages, and
+database/service updates require explicit options. PowerShell users can run
+`pwsh ./.tools/update.ps1 --dry-run`. See [.tools/README.md](.tools/README.md#updating-installed-tools)
+for adoption, supported update sources, safety gates, and limitations.
 
 ### Close the doors
 
@@ -178,11 +344,32 @@ This removes the managed source block from your shell profile and deletes the ge
 
 ### Pack up the tools
 
+The root `uninstall.sh` requires an explicit target and supports a dry run. This
+prevents a no-argument invocation from inheriting the lower-level controller's
+full-bundle default.
+
 ```bash
+bash ./uninstall.sh jq --dry-run
+bash ./uninstall.sh cloud --dry-run
+bash ./uninstall.sh jq
+bash ./uninstall.sh full
 bash ./.tools/uninstall.sh full
 bash ./.tools/uninstall.sh services
 bash ./.tools/uninstall.sh kubectl docker
 bash ./.tools/uninstall.sh ai --dry-run
+```
+
+Download and preview an explicit remote uninstall target:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- cloud --dry-run
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- jq --dry-run
+```
+
+After reviewing the preview, omit `--dry-run` to uninstall:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/uninstall.sh | bash -s -- jq
 ```
 
 Windows examples:
@@ -196,10 +383,10 @@ The uninstall flow mirrors the install pattern: it is explicit, target-based, an
 
 ## Tool bundles
 
-- full (default): base developer setup + cloud CLIs + local data/service tooling
+- full (default): base developer setup + R, Scala, C/C++, and Rust toolchains + cloud CLIs + local data/service tooling
 - cloud: base setup + kubernetes/docker/cloud CLIs and JSON/YAML helpers
 - services: local data/service tooling only (postgres, redis, mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka)
-- ai: base setup + AI-oriented Python/Go packages and full Node package profile
+- ai: base setup, including R, Temurin JDK 25, Scala, C/C++, and Rust, + AI-oriented Python/Go packages and full Node package profile
 
 For language-by-language tool selection, run the guided root installer:
 

@@ -20,10 +20,14 @@ FULL_BUNDLE=(
   wget
   unzip
   python3
+  r
   nvm
   node
   golang
+  cpp
+  rust
   java
+  scala
   kubectl
   helm
   direnv
@@ -117,9 +121,14 @@ AI_BUNDLE=(
   wget
   unzip
   python3
+  r
   nvm
   node
   golang
+  cpp
+  rust
+  java
+  scala
   kubectl
   helm
   docker
@@ -129,6 +138,61 @@ AI_BUNDLE=(
   go-ai
   node-full
 )
+
+UPDATEABLE_TOOLS=(
+  git
+  gpg
+  curl
+  wget
+  unzip
+  python3
+  r
+  nvm
+  node
+  golang
+  cpp
+  rust
+  java
+  scala
+  julia
+  kubectl
+  helm
+  docker
+  dotnetcore
+  vscode
+  gcloud
+  aws
+  eksctl
+  az
+  doctl
+  jq
+  yq
+  postgres
+  redis
+  mysql
+  clickhouse
+  mongodb
+  rabbitmq
+  elasticsearch
+  kafka
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
+)
+
+ALL_TOOLS=("${UPDATEABLE_TOOLS[@]}" git-config git-signing identity ssh-key)
 
 COMMON_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
 REPO_ROOT="$(cd "$COMMON_TOOLS_DIR/.." && pwd)"
@@ -183,6 +247,69 @@ get_tool_package_list() {
   fi
 
   printf '%s\n' "${package_list[@]}"
+}
+
+ensure_rustup_default() {
+  local toolchains
+  toolchains="$(rustup toolchain list)"
+  if ! grep -q ' (default)$' <<< "$toolchains"; then
+    rustup default stable
+  fi
+}
+
+install_rustup_if_missing() {
+  export PATH="$HOME/.cargo/bin:$PATH"
+
+  if command -v rustup >/dev/null 2>&1; then
+    ensure_rustup_default
+    echo "rustup is already installed; preserving its existing default toolchain."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install rustup." >&2
+    return 1
+  fi
+
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+  export PATH="$HOME/.cargo/bin:$PATH"
+  ensure_rustup_default
+}
+
+install_scala_cli_if_missing() {
+  if command -v scala-cli >/dev/null 2>&1; then
+    echo "Scala CLI is already installed."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install Scala CLI." >&2
+    return 1
+  fi
+
+  curl -fsSL https://scala-cli.virtuslab.org/get | sh
+}
+
+install_juliaup_if_missing() {
+  export PATH="$HOME/.juliaup/bin:$PATH"
+
+  if command -v juliaup >/dev/null 2>&1; then
+    echo "Juliaup is already installed; preserving its existing channels and default."
+    return 0
+  fi
+
+  if command -v julia >/dev/null 2>&1; then
+    echo "Julia is already installed without Juliaup; leaving the existing installation unchanged."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install Juliaup." >&2
+    return 1
+  fi
+
+  curl -fsSL https://install.julialang.org | sh -s -- --yes --default-channel release
+  export PATH="$HOME/.juliaup/bin:$PATH"
 }
 
 install_python_dev_packages() {
@@ -654,6 +781,24 @@ canonical_tool_name() {
   local tool="$1"
 
   case "$tool" in
+    juliaup)
+      echo "julia"
+      ;;
+    R|r-lang)
+      echo "r"
+      ;;
+    scala-cli)
+      echo "scala"
+      ;;
+    rustup)
+      echo "rust"
+      ;;
+    c++)
+      echo "cpp"
+      ;;
+    jdk)
+      echo "java"
+      ;;
     kubernetes-cli)
       echo "kubectl"
       ;;
@@ -705,10 +850,7 @@ canonical_tool_name() {
     node-core)
       echo "node"
       ;;
-    node-full)
-      echo "node"
-      ;;
-    node)
+    node-full|node)
       echo "node"
       ;;
     *)

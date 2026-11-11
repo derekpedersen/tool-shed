@@ -62,6 +62,7 @@ if [[ ! -f "$SCRIPT_DIR/common.sh" || ! -f "$SCRIPT_DIR/module-runtime.sh" || ! 
 fi
 
 source "$SCRIPT_DIR/common.sh"
+source "$SCRIPT_DIR/state.sh"
 
 DRY_RUN=false
 args=()
@@ -185,6 +186,10 @@ for tool in "${TARGET_LIST[@]}"; do
     echo "Module install failed: $tool"
     failures=$((failures + 1))
   fi
+done
+
+for arg in "${args[@]}"; do
+  DRY_RUN="$DRY_RUN" tool_state_record_bundle "$arg"
 done
 
 if (( failures > 0 )); then
