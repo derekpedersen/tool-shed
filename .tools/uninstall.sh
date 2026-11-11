@@ -54,10 +54,12 @@ Bundle targets:
   ai    = base tools (including R, Java, Scala, C/C++, and Rust) + AI package profiles for python/go/node
 
 Canonical tools:
-  git, gpg, curl, wget, unzip, python3, r, nvm, node, golang, cpp, rust, java, scala, julia, kubectl, helm, docker,
-  dotnetcore, vscode, gcloud, aws, eksctl, az, doctl, jq, yq, postgres, redis,
-  mysql, clickhouse, mongodb, rabbitmq, elasticsearch, kafka, git-config,
-  git-signing, ssh-key, identity
+  git, gpg, curl, wget, unzip, python3, r, nvm, node, golang, cpp, rust, java,
+  scala, julia, kubectl, helm, direnv, kind, stern, kubeseal, httpie, rg, fd,
+  bat, eza, fzf, gh, terraform, tflint, k9s, trivy, docker, dotnetcore, vscode,
+  gcloud, aws, eksctl, az, doctl, jq, yq, postgres, redis, mysql, clickhouse,
+  mongodb, rabbitmq, elasticsearch, kafka, git-config, git-signing, ssh-key,
+  identity
 
 Legacy aliases (supported):
   kubernetes-cli->kubectl, google-cloud->gcloud, awscli->aws,
@@ -422,6 +424,118 @@ uninstall_tool() {
             rm -f /usr/local/bin/helm
           fi
         fi
+      fi
+      ;;
+    direnv)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "direnv"
+      fi
+      ;;
+    kind)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "kind"
+      fi
+      ;;
+    stern)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "stern"
+      fi
+      ;;
+    kubeseal)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "kubeseal"
+      fi
+      ;;
+    httpie)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "httpie" "http"
+        remove_binary "http"
+      fi
+      ;;
+    rg)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "ripgrep" "rg"
+        remove_binary "rg"
+      fi
+      ;;
+    fd)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "fd-find" "fd"
+        remove_binary "fd"
+      fi
+      ;;
+    bat)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "bat" "bat"
+        remove_binary "bat"
+      fi
+      ;;
+    eza)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "eza" "eza"
+        remove_binary "eza"
+      fi
+      ;;
+    fzf)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "fzf" "fzf"
+        remove_binary "fzf"
+      fi
+      ;;
+    gh)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_apt_package "gh" "gh"
+        remove_binary "gh"
+      fi
+      ;;
+    terraform)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "terraform"
+      fi
+      ;;
+    tflint)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "tflint"
+      fi
+      ;;
+    k9s)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "k9s"
+      fi
+      ;;
+    trivy)
+      if [[ "$PLATFORM" == "windows" ]]; then
+        uninstall_windows "$tool"
+      else
+        remove_binary "trivy"
       fi
       ;;
     kubectl|kubernetes-cli)

@@ -30,6 +30,21 @@ FULL_BUNDLE=(
   scala
   kubectl
   helm
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
   docker
   dotnetcore
   vscode
@@ -59,8 +74,24 @@ CLOUD_BUNDLE=(
   nvm
   node
   golang
+  java
   kubectl
   helm
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
   docker
   dotnetcore
   vscode
@@ -795,6 +826,9 @@ canonical_tool_name() {
       ;;
     go|golang)
       echo "golang"
+      ;;
+    java|jdk|openjdk|temurin)
+      echo "java"
       ;;
     node-core)
       echo "node"
