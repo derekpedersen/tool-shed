@@ -67,6 +67,7 @@ apt-get() {
 install() { echo 'Unexpected binary installation' >> "$MOCK_LOG"; return 99; }
 export -f id jq curl dpkg-query apt-cache apt-mark apt-get install
 
+export TOOL_SHED_NO_PROMPT=1
 source .tools/update-runtime.sh
 
 echo 'Testing read-only adoption and empty state'
@@ -78,6 +79,11 @@ bash update.sh --adopt jq --dry-run
 [[ ! -s "$MOCK_LOG" ]]
 if bash update.sh --adopt >/dev/null 2>&1; then exit 1; fi
 if bash update.sh ../escape --dry-run >/dev/null 2>&1; then exit 1; fi
+
+echo 'Testing unmanaged adoption prompt'
+output="$(TOOL_SHED_NO_PROMPT=0 TOOL_SHED_STATE_DIR="$temporary/unmanaged-prompt-state" TOOL_SHED_LOG_DIR="$temporary/unmanaged-prompt-logs" MOCK_INSTALLED='jq' TOOL_SHED_FORCE_PROMPT=1 bash update.sh <<< 'y' 2>&1)"
+[[ "$output" == *'Detected unmanaged installed tools'* ]]
+[[ "$output" == *'Adopted: jq'* ]]
 
 echo 'Testing successful adoption and state metadata'
 bash update.sh --adopt jq curl

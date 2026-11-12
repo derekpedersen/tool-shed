@@ -54,7 +54,7 @@ usage() {
 export DRY_RUN=false UPDATE_ALLOW_MAJOR=false UPDATE_INCLUDE_SERVICES=false UPDATE_YES=false UPDATE_WITH_PACKAGES=false
 adopt=false
 list=false
-targets=()
+declare -a targets=()
 for arg in "$@"; do
   case "$arg" in
     --dry-run|-n) DRY_RUN=true ;;
@@ -85,27 +85,79 @@ if [[ "$list" == true ]]; then
   exit 0
 fi
 
+tool_shed_prompt_yes_no() {
+  local prompt="${1:-Continue?}"
+  local default="${2:-n}"
+  local answer=""
+
+  if [[ "${TOOL_SHED_NO_PROMPT:-0}" == "1" ]]; then
+    return 1
+  fi
+
+  if [[ -t 0 || "${TOOL_SHED_FORCE_PROMPT:-0}" == "1" ]]; then
+    if [[ "$default" == "y" ]]; then
+      read -r -p "$prompt [Y/n]: " answer
+      answer="${answer:-Y}"
+    else
+      read -r -p "$prompt [y/N]: " answer
+      answer="${answer:-N}"
+    fi
+    case "$answer" in
+      y|Y|yes|YES) return 0 ;;
+      *) return 1 ;;
+    esac
+  fi
+
+  return 1
+}
+
+prompt_adopt_unmanaged_tools() {
+  local tool
+  local -a unmanaged=()
+
+  while IFS= read -r tool; do
+    [[ -n "$tool" ]] || continue
+    [[ "$tool" == "TOOL" ]] && continue
+    unmanaged+=("$tool")
+  done < <(bash "$REPO_ROOT/.tools/list.sh" 2>/dev/null | awk '$3 == "unmanaged" {print $1}')
+
+  if (( ${#unmanaged[@]} == 0 )); then
+    return 1
+  fi
+
+  echo "Detected unmanaged installed tools: ${unmanaged[*]}."
+  if ! tool_shed_prompt_yes_no "Adopt them as managed now?" "n"; then
+    echo "Leaving unmanaged tools alone."
+    return 1
+  fi
+
+  bash "$REPO_ROOT/.tools/update.sh" --adopt "${unmanaged[@]}"
+  return 0
+}
+
 if [[ "$adopt" == true && ${#targets[@]} -eq 0 ]]; then
   echo "Adoption requires explicit tools or bundles, for example: --adopt cloud" >&2
   exit 2
 fi
 
 export PYTHON_PACKAGE_PROFILE="${PYTHON_PACKAGE_PROFILE:-full}" GO_PACKAGE_PROFILE="${GO_PACKAGE_PROFILE:-full}" NODE_PACKAGE_PROFILE="${NODE_PACKAGE_PROFILE:-full}"
-for target in "${targets[@]}"; do
-  case "$target" in
-    ai) PYTHON_PACKAGE_PROFILE=ai; GO_PACKAGE_PROFILE=ai ;;
-    python-ai) PYTHON_PACKAGE_PROFILE=ai ;;
-    python-core|python-dev) PYTHON_PACKAGE_PROFILE=core ;;
-    python-full|python) PYTHON_PACKAGE_PROFILE=full ;;
-    go-ai) GO_PACKAGE_PROFILE=ai ;;
-    go-core|go-dev) GO_PACKAGE_PROFILE=core ;;
-    go-full|go) GO_PACKAGE_PROFILE=full ;;
-    node-core|node-dev) NODE_PACKAGE_PROFILE=core ;;
-    node-full) NODE_PACKAGE_PROFILE=full ;;
-  esac
-done
+if (( ${#targets[@]} > 0 )); then
+  for target in "${targets[@]}"; do
+    case "$target" in
+      ai) PYTHON_PACKAGE_PROFILE=ai; GO_PACKAGE_PROFILE=ai ;;
+      python-ai) PYTHON_PACKAGE_PROFILE=ai ;;
+      python-core|python-dev) PYTHON_PACKAGE_PROFILE=core ;;
+      python-full|python) PYTHON_PACKAGE_PROFILE=full ;;
+      go-ai) GO_PACKAGE_PROFILE=ai ;;
+      go-core|go-dev) GO_PACKAGE_PROFILE=core ;;
+      go-full|go) GO_PACKAGE_PROFILE=full ;;
+      node-core|node-dev) NODE_PACKAGE_PROFILE=core ;;
+      node-full) NODE_PACKAGE_PROFILE=full ;;
+    esac
+  done
+fi
 
-selected=()
+declare -a selected=()
 if [[ ${#targets[@]} -eq 0 ]]; then
   while IFS= read -r tool; do selected+=("$tool"); done < <(tool_state_list)
 else
@@ -114,25 +166,32 @@ else
   done < <(catalog_resolve_targets "${targets[@]}")
 fi
 
-for tool in "${selected[@]}"; do
-  case "$tool" in identity|git-config|git-signing|ssh-key) continue ;; esac
-  valid=false
-  for known in "${UPDATEABLE_TOOLS[@]}"; do
-    [[ "$tool" != "$known" ]] || valid=true
-  done
-  if [[ "$valid" != true ]]; then
-    echo "Unsupported update target: $tool" >&2
-    exit 2
-  fi
-done
-
-ordered=()
-for known in "${UPDATEABLE_TOOLS[@]}" identity git-config git-signing ssh-key; do
+if (( ${#selected[@]} > 0 )); then
   for tool in "${selected[@]}"; do
-    [[ "$tool" != "$known" ]] || ordered+=("$tool")
+    case "$tool" in identity|git-config|git-signing|ssh-key) continue ;; esac
+    valid=false
+    for known in "${UPDATEABLE_TOOLS[@]}"; do
+      [[ "$tool" != "$known" ]] || valid=true
+    done
+    if [[ "$valid" != true ]]; then
+      echo "Unsupported update target: $tool" >&2
+      exit 2
+    fi
   done
-done
+fi
+
+declare -a ordered=()
+if (( ${#selected[@]} > 0 )); then
+  for known in "${UPDATEABLE_TOOLS[@]}" identity git-config git-signing ssh-key; do
+    for tool in "${selected[@]}"; do
+      [[ "$tool" != "$known" ]] || ordered+=("$tool")
+    done
+  done
+fi
 if [[ ${#ordered[@]} -eq 0 ]]; then
+  if [[ "$adopt" == false ]] && prompt_adopt_unmanaged_tools; then
+    exit 0
+  fi
   echo "No managed tools recorded. Use --adopt TOOL or --adopt BUNDLE for existing installations."
   exit 0
 fi

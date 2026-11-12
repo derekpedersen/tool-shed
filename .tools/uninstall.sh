@@ -138,22 +138,24 @@ resolve_targets() {
   done
 
   local result=()
-  for item in "${expanded[@]}"; do
-    local seen_item
-    local already_seen=false
-    if [[ ${#result[@]} -gt 0 ]]; then
-      for seen_item in "${result[@]}"; do
-        if [[ "$seen_item" == "$item" ]]; then
-          already_seen=true
-          break
-        fi
-      done
-    fi
+  if (( ${#expanded[@]} > 0 )); then
+    for item in "${expanded[@]}"; do
+      local seen_item
+      local already_seen=false
+      if [[ ${#result[@]} -gt 0 ]]; then
+        for seen_item in "${result[@]}"; do
+          if [[ "$seen_item" == "$item" ]]; then
+            already_seen=true
+            break
+          fi
+        done
+      fi
 
-    if [[ "$already_seen" == false ]]; then
-      result+=("$item")
-    fi
-  done
+      if [[ "$already_seen" == false ]]; then
+        result+=("$item")
+      fi
+    done
+  fi
 
   if [[ ${#result[@]} -gt 0 ]]; then
     printf '%s\n' "${result[@]}"

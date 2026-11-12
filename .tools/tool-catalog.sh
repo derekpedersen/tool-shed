@@ -45,19 +45,25 @@ catalog_resolve_targets() {
   done
 
   local result=()
-  for item in "${expanded[@]}"; do
-    local seen=false
-    local existing
-    for existing in "${result[@]}"; do
-      if [[ "$existing" == "$item" ]]; then
-        seen=true
-        break
+  if (( ${#expanded[@]} > 0 )); then
+    for item in "${expanded[@]}"; do
+      local seen=false
+      local existing
+      if (( ${#result[@]} > 0 )); then
+        for existing in "${result[@]}"; do
+          if [[ "$existing" == "$item" ]]; then
+            seen=true
+            break
+          fi
+        done
       fi
+      [[ "$seen" == true ]] || result+=("$item")
     done
-    [[ "$seen" == true ]] || result+=("$item")
-  done
+  fi
 
-  printf '%s\n' "${result[@]}"
+  if (( ${#result[@]} > 0 )); then
+    printf '%s\n' "${result[@]}"
+  fi
 }
 
 tool_package_specs() {

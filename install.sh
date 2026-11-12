@@ -72,7 +72,25 @@ confirm() {
   local default="${2:-y}"
   local answer
 
+  if [[ "${TOOL_SHED_NO_PROMPT:-0}" == "1" ]]; then
+    [[ "$default" == "y" ]]
+    return
+  fi
+
   if [[ "$HAS_TTY" != true ]]; then
+    if [[ "${TOOL_SHED_FORCE_PROMPT:-0}" == "1" ]]; then
+      if [[ "$default" == "y" ]]; then
+        read -r -p "$prompt [Y/n]: " answer
+        answer="${answer:-Y}"
+      else
+        read -r -p "$prompt [y/N]: " answer
+        answer="${answer:-N}"
+      fi
+      case "$answer" in
+        y|Y|yes|YES) return 0 ;;
+        *) return 1 ;;
+      esac
+    fi
     [[ "$default" == "y" ]]
     return
   fi
@@ -89,6 +107,30 @@ confirm() {
     y|Y|yes|YES) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+prompt_adopt_unmanaged_tools() {
+  local tool
+  local -a unmanaged=()
+
+  while IFS= read -r tool; do
+    [[ -n "$tool" ]] || continue
+    [[ "$tool" == "TOOL" ]] && continue
+    unmanaged+=("$tool")
+  done < <(bash "$SCRIPT_DIR/.tools/list.sh" 2>/dev/null | awk '$3 == "unmanaged" {print $1}')
+
+  if (( ${#unmanaged[@]} == 0 )); then
+    return 0
+  fi
+
+  if [[ "$HAS_TTY" != true && "${TOOL_SHED_FORCE_PROMPT:-0}" != "1" ]]; then
+    return 0
+  fi
+
+  echo "Detected unmanaged installed tools: ${unmanaged[*]}." > /dev/tty
+  if confirm "Adopt them as managed now?" "n"; then
+    bash "$SCRIPT_DIR/.tools/update.sh" --adopt "${unmanaged[@]}"
+  fi
 }
 
 pick_tools_target() {
@@ -243,6 +285,8 @@ if [[ "$run_tools" == true ]]; then
   read -r -a tool_args <<< "$tools_target"
   bash "$SCRIPT_DIR/.tools/install.sh" "${tool_args[@]}"
 fi
+
+prompt_adopt_unmanaged_tools
 
 echo "Root install flow complete."
 

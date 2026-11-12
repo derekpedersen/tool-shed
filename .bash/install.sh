@@ -266,7 +266,9 @@ $MARKER_END
 EOF
 )
 
-printf '%s\n' "$SOURCE_BLOCK" >> "$PROFILE_FILE"
+if ! grep -Fq "$MARKER_BEGIN" "$PROFILE_FILE"; then
+  printf '%s\n' "$SOURCE_BLOCK" >> "$PROFILE_FILE"
+fi
 
 echo "Wrote Bash helpers to $HELPERS_FILE"
 echo "Added Bash helper source to $PROFILE_FILE"
