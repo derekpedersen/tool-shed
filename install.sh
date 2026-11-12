@@ -144,10 +144,12 @@ pick_tools_target() {
 
   echo "Tools install mode:" > /dev/tty
   echo "  1) full (default)" > /dev/tty
-  echo "  2) cloud" > /dev/tty
-  echo "  3) services" > /dev/tty
-  echo "  4) ai" > /dev/tty
-  echo "  5) Prompt by language" > /dev/tty
+  echo "  2) software-developer" > /dev/tty
+  echo "  3) data-science" > /dev/tty
+  echo "  4) cloud" > /dev/tty
+  echo "  5) services" > /dev/tty
+  echo "  6) ai" > /dev/tty
+  echo "  7) Prompt by language" > /dev/tty
   read -r -u 3 -p "Mode [1]: " mode
   mode="${mode:-1}"
 
@@ -157,18 +159,26 @@ pick_tools_target() {
       return
       ;;
     2)
-      printf '%s\n' "cloud"
+      printf '%s\n' "software-developer"
       return
       ;;
     3)
-      printf '%s\n' "services"
+      printf '%s\n' "data-science"
       return
       ;;
     4)
-      printf '%s\n' "ai"
+      printf '%s\n' "cloud"
       return
       ;;
     5)
+      printf '%s\n' "services"
+      return
+      ;;
+    6)
+      printf '%s\n' "ai"
+      return
+      ;;
+    7)
       pick_language_targets
       return
       ;;

@@ -14,7 +14,7 @@
 set -euo pipefail
 
 usage() {
-	echo "Usage: bash uninstall.sh [full|cloud|services|ai|TOOL ...] [--dry-run]"
+	echo "Usage: bash uninstall.sh [full|cloud|services|ai|software-developer|data-science|TOOL ...] [--dry-run]"
 	echo "A tool or bundle target is required. Preview removals with --dry-run."
 }
 

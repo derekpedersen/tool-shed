@@ -134,6 +134,69 @@ AI_BUNDLE=(
   node-full
 )
 
+SOFTWARE_DEVELOPER_BUNDLE=(
+  git
+  curl
+  wget
+  unzip
+  python3
+  nvm
+  node
+  golang
+  java
+  kubectl
+  helm
+  direnv
+  kind
+  stern
+  kubeseal
+  httpie
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+  terraform
+  tflint
+  k9s
+  trivy
+  docker
+  dotnetcore
+  vscode
+  gcloud
+  aws
+  eksctl
+  az
+  doctl
+  jq
+  yq
+)
+
+DATA_SCIENCE_BUNDLE=(
+  git
+  curl
+  wget
+  unzip
+  python3
+  nvm
+  node
+  golang
+  r
+  java
+  docker
+  vscode
+  jq
+  yq
+  httpie
+  rg
+  fd
+  bat
+  eza
+  fzf
+  gh
+)
+
 UPDATEABLE_TOOLS=(
   git
   gpg
@@ -902,6 +965,12 @@ expand_bundle_item() {
       ;;
     services)
       printf '%s\n' "${SERVICES_BUNDLE[@]}"
+      ;;
+    software-developer)
+      printf '%s\n' "${SOFTWARE_DEVELOPER_BUNDLE[@]}"
+      ;;
+    data-science)
+      printf '%s\n' "${DATA_SCIENCE_BUNDLE[@]}"
       ;;
     *)
       printf '%s\n' "$item"

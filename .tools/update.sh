@@ -40,7 +40,7 @@ source "$SCRIPT_DIR/update-runtime.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 usage() {
-  echo "Usage: bash .tools/update.sh [full|cloud|services|ai|all|TOOL ...] [options]"
+  echo "Usage: bash .tools/update.sh [full|cloud|services|ai|software-developer|data-science|all|TOOL ...] [options]"
   echo "No targets: update all managed, installed tools. Missing tools are never installed."
   echo "  --dry-run, -n       Preview without downloads, metadata refreshes, or writes"
   echo "  --adopt             Record existing selected installations, without updating"

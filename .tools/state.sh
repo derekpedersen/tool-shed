@@ -110,7 +110,7 @@ tool_state_remove() {
 tool_state_record_bundle() {
   [[ "${DRY_RUN:-false}" != true ]] || return 0
   local bundle="$1" tool directory temporary
-  case "$bundle" in full|cloud|services|ai) ;; *) return 0 ;; esac
+  case "$bundle" in full|cloud|services|ai|software-developer|data-science) ;; *) return 0 ;; esac
   directory="$(tool_state_dir)/bundles"
   mkdir -p "$directory" || return 1
   temporary="$(mktemp "$directory/.bundle.XXXXXX")" || return 1

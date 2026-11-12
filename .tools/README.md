@@ -10,6 +10,8 @@ Canonical bundle names are defined in `common.sh` and intentionally limited to:
 - `cloud`
 - `services`
 - `ai`
+- `software-developer`
+- `data-science`
 
 ## Files
 

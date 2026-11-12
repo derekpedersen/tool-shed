@@ -17,7 +17,7 @@ source "$SCRIPT_DIR/tool-catalog.sh"
 source "$SCRIPT_DIR/state.sh"
 
 usage() {
-  echo "Usage: bash list.sh [full|cloud|services|ai|all|TOOL ...]"
+  echo "Usage: bash list.sh [full|cloud|services|ai|software-developer|data-science|all|TOOL ...]"
   echo "Lists detected supported tools, live versions, and management status."
   echo "With no target, checks every supported tool, including optional tools."
 }

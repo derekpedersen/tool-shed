@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 .PHONY: build test test-updates all
 
-BUNDLES := full cloud services ai
+BUNDLES := full cloud services ai software-developer data-science
 
 all: build test
 
