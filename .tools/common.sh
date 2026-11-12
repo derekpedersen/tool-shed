@@ -121,14 +121,9 @@ AI_BUNDLE=(
   wget
   unzip
   python3
-  r
   nvm
   node
   golang
-  cpp
-  rust
-  java
-  scala
   kubectl
   helm
   docker

@@ -71,7 +71,6 @@ test: test-updates
 		[[ "$$(canonical_tool_name r-lang)" == r ]]; \
 		assert_python_before_r() { local items=("$$@"); local python_index=-1; local r_index=-1; local index; for index in "$${!items[@]}"; do case "$${items[$$index]}" in python3) python_index=$$index ;; r) r_index=$$index ;; esac; done; [[ $$python_index -ge 0 && $$python_index -lt $$r_index ]]; }; \
 		assert_python_before_r "$${FULL_BUNDLE[@]}"; \
-		assert_python_before_r "$${AI_BUNDLE[@]}"; \
 		[[ " $${CLOUD_BUNDLE[*]} " != *" r "* && " $${SERVICES_BUNDLE[*]} " != *" r "* ]]; \
 		echo "Testing R module dry runs"; \
 		for tool in r R r-lang; do bash ./.tools/install.sh "$$tool" --dry-run; bash ./.tools/uninstall.sh "$$tool" --dry-run; done; \
@@ -80,7 +79,6 @@ test: test-updates
 		[[ "$$(canonical_tool_name scala-cli)" == scala ]]; \
 		assert_java_before_scala() { local items=("$$@"); local java_index=-1; local scala_index=-1; local index; for index in "$${!items[@]}"; do case "$${items[$$index]}" in java) java_index=$$index ;; scala) scala_index=$$index ;; esac; done; [[ $$java_index -ge 0 && $$java_index -lt $$scala_index ]]; }; \
 		assert_java_before_scala "$${FULL_BUNDLE[@]}"; \
-		assert_java_before_scala "$${AI_BUNDLE[@]}"; \
 		[[ " $${CLOUD_BUNDLE[*]} " != *" scala "* && " $${SERVICES_BUNDLE[*]} " != *" scala "* ]]; \
 		echo "Testing Scala module dry runs"; \
 		bash ./.tools/install.sh scala --dry-run; \
@@ -93,7 +91,6 @@ test: test-updates
 		[[ "$$(canonical_tool_name c++)" == cpp ]]; \
 		assert_cpp_before_rust() { local items=("$$@"); local cpp_index=-1; local rust_index=-1; local index; for index in "$${!items[@]}"; do case "$${items[$$index]}" in cpp) cpp_index=$$index ;; rust) rust_index=$$index ;; esac; done; [[ $$cpp_index -ge 0 && $$cpp_index -lt $$rust_index ]]; }; \
 		assert_cpp_before_rust "$${FULL_BUNDLE[@]}"; \
-		assert_cpp_before_rust "$${AI_BUNDLE[@]}"; \
 		[[ " $${CLOUD_BUNDLE[*]} " != *" cpp "* && " $${CLOUD_BUNDLE[*]} " != *" rust "* ]]; \
 		[[ " $${SERVICES_BUNDLE[*]} " != *" cpp "* && " $${SERVICES_BUNDLE[*]} " != *" rust "* ]]; \
 		echo "Testing Rust uninstall preservation"; \

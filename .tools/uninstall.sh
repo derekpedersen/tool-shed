@@ -51,7 +51,7 @@ Bundle targets:
   full  = base tools + cloud CLIs + data/service tools
   cloud = base tools + kubernetes/docker/cloud CLIs + jq/yq
   services = local data/service tools only
-  ai    = base tools (including R, Java, Scala, C/C++, and Rust) + AI package profiles for python/go/node
+  ai    = AI-focused core dev tools + AI package profiles for python/go/node
 
 Canonical tools:
   git, gpg, curl, wget, unzip, python3, r, nvm, node, golang, cpp, rust, java,
