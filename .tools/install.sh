@@ -96,7 +96,7 @@ for arg in "${args[@]}"; do
   case "$arg" in
     default|dev|ai-tools)
       echo "Unsupported bundle name: $arg"
-      echo "Supported bundles are: full, cloud, services, ai"
+      echo "Supported bundles are: full, cloud, services, ai, software-developer, data-science"
       exit 1
       ;;
   esac

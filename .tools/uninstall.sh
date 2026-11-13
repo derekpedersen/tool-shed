@@ -45,13 +45,15 @@ esac
 
 usage() {
   cat <<'EOF'
-Usage: bash ./.tools/uninstall.sh [full|cloud|services|ai|<tool> [tool ...]] [--dry-run]
+Usage: bash ./.tools/uninstall.sh [full|cloud|services|ai|software-developer|data-science|<tool> [tool ...]] [--dry-run]
 
 Bundle targets:
   full  = base tools + cloud CLIs + data/service tools
   cloud = base tools + kubernetes/docker/cloud CLIs + jq/yq
   services = local data/service tools only
-  ai    = base tools (including R, Java, Scala, C/C++, and Rust) + AI package profiles for python/go/node
+  ai    = AI-focused core dev tools + AI package profiles for python/go/node
+  software-developer = language/tooling core + cloud/devops CLIs
+  data-science = analytics-oriented tools and package-ready runtimes (no services)
 
 Canonical tools:
   git, gpg, curl, wget, unzip, python3, r, nvm, node, golang, cpp, rust, java,
@@ -98,7 +100,7 @@ for arg in "${args[@]}"; do
   case "$arg" in
     default|dev|ai-tools)
       echo "Unsupported bundle name: $arg"
-      echo "Supported bundles are: full, cloud, services, ai"
+      echo "Supported bundles are: full, cloud, services, ai, software-developer, data-science"
       exit 1
       ;;
   esac
@@ -120,6 +122,12 @@ expand_bundle() {
       ;;
     ai)
       printf '%s\n' "${AI_BUNDLE[@]}"
+      ;;
+    software-developer)
+      printf '%s\n' "${SOFTWARE_DEVELOPER_BUNDLE[@]}"
+      ;;
+    data-science)
+      printf '%s\n' "${DATA_SCIENCE_BUNDLE[@]}"
       ;;
     *)
       printf '%s\n' "$item"

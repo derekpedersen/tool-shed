@@ -4,8 +4,8 @@ set -euo pipefail
 update_mac() {
   update_prepare_packages "$1" "$STATE_MANAGER" || return $?
   case "$STATE_MANAGER" in
-    brew-formula) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade --formula "${UPDATE_PACKAGES[@]}" ;;
-    brew-cask) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade --cask "${UPDATE_PACKAGES[@]}" ;;
+    brew-formula) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade -v --formula "${UPDATE_PACKAGES[@]}" ;;
+    brew-cask) HOMEBREW_NO_AUTO_UPDATE=1 update_run brew upgrade -v --cask "${UPDATE_PACKAGES[@]}" ;;
   esac
 }
 
@@ -23,7 +23,7 @@ install_brew_formula_if_missing() {
     return 0
   fi
 
-  brew install "$formula_name"
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install -v "$formula_name"
 }
 
 install_brew_cask_if_missing() {
@@ -40,7 +40,7 @@ install_brew_cask_if_missing() {
     return 0
   fi
 
-  brew install --cask "$cask_name"
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install -v --cask "$cask_name"
 }
 
 install_mac() {
@@ -188,6 +188,10 @@ install_mac() {
         install_scala_cli_if_missing
         ;;
       r)
+        if brew info --json=v2 r 2>/dev/null | grep -q '"bottle": false'; then
+          echo "R has no prebuilt Homebrew bottle for this macOS setup."
+          echo "Homebrew will compile R and dependencies from source; this can take a while."
+        fi
         install_brew_formula_if_missing "r" "R"
         ;;
       julia)

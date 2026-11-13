@@ -164,12 +164,14 @@ DRY_RUN=true tool_state_record_bundle cloud
 [[ ! -e "$TOOL_SHED_STATE_DIR/bundles" ]]
 tool_state_record_bundle cloud
 grep -Fxq jq "$TOOL_SHED_STATE_DIR/bundles/cloud"
+tool_state_record_bundle software-developer
+grep -Fxq jq "$TOOL_SHED_STATE_DIR/bundles/software-developer"
 
 echo 'Testing every installable module has a read-only update entrypoint'
 for module in */install.sh; do
   test -f "${module%/install.sh}/update.sh"
 done
-for bundle in full cloud services ai all; do
+for bundle in full cloud services ai software-developer data-science all; do
   bash update.sh "$bundle" --dry-run > /dev/null
 done
 

@@ -87,7 +87,9 @@ The bundle controller supports a small set of explicit names:
 - `full` — default developer setup
 - `cloud` — cloud-related tooling and helpers
 - `services` — local services and infrastructure support
-- `ai` — AI-oriented toolchain packages
+- `ai` — AI-focused core dev tooling and package profiles
+- `software-developer` — software engineering toolchain with cloud/devops CLIs
+- `data-science` — analytics-oriented tooling and runtimes (no services by default)
 
 ## Quick catalog
 
