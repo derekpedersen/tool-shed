@@ -85,54 +85,8 @@ if [[ "$list" == true ]]; then
   exit 0
 fi
 
-tool_shed_prompt_yes_no() {
-  local prompt="${1:-Continue?}"
-  local default="${2:-n}"
-  local answer=""
-
-  if [[ "${TOOL_SHED_NO_PROMPT:-0}" == "1" ]]; then
-    return 1
-  fi
-
-  if [[ -t 0 || "${TOOL_SHED_FORCE_PROMPT:-0}" == "1" ]]; then
-    if [[ "$default" == "y" ]]; then
-      read -r -p "$prompt [Y/n]: " answer
-      answer="${answer:-Y}"
-    else
-      read -r -p "$prompt [y/N]: " answer
-      answer="${answer:-N}"
-    fi
-    case "$answer" in
-      y|Y|yes|YES) return 0 ;;
-      *) return 1 ;;
-    esac
-  fi
-
-  return 1
-}
-
 prompt_adopt_unmanaged_tools() {
-  local tool
-  local -a unmanaged=()
-
-  while IFS= read -r tool; do
-    [[ -n "$tool" ]] || continue
-    [[ "$tool" == "TOOL" ]] && continue
-    unmanaged+=("$tool")
-  done < <(bash "$REPO_ROOT/.tools/list.sh" 2>/dev/null | awk '$3 == "unmanaged" {print $1}')
-
-  if (( ${#unmanaged[@]} == 0 )); then
-    return 1
-  fi
-
-  echo "Detected unmanaged installed tools: ${unmanaged[*]}."
-  if ! tool_shed_prompt_yes_no "Adopt them as managed now?" "n"; then
-    echo "Leaving unmanaged tools alone."
-    return 1
-  fi
-
-  bash "$REPO_ROOT/.tools/update.sh" --adopt "${unmanaged[@]}"
-  return 0
+  bash "$REPO_ROOT/.tools/adopt.sh" --prompt
 }
 
 if [[ "$adopt" == true && ${#targets[@]} -eq 0 ]]; then
@@ -260,6 +214,10 @@ for tool in "${ordered[@]}"; do
     *) echo "FAILED: $tool (exit $status)"; failures=$((failures + 1)) ;;
   esac
 done
+
+if [[ "$adopt" == false ]]; then
+  prompt_adopt_unmanaged_tools || true
+fi
 
 if [[ "$adopt" == true ]]; then
   for target in "${targets[@]}"; do tool_state_record_bundle "$target"; done

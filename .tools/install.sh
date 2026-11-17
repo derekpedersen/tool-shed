@@ -64,6 +64,10 @@ fi
 source "$SCRIPT_DIR/common.sh"
 source "$SCRIPT_DIR/state.sh"
 
+prompt_adopt_unmanaged_tools() {
+  bash "$SCRIPT_DIR/adopt.sh" --prompt
+}
+
 DRY_RUN=false
 args=()
 for arg in "$@"; do
@@ -197,6 +201,8 @@ if (( failures > 0 )); then
   [[ -n "$LOG_FILE" ]] && echo "Full log: $LOG_FILE"
   exit 1
 fi
+
+prompt_adopt_unmanaged_tools
 
 if [[ "$DRY_RUN" == true ]]; then
   echo "Dry run complete for: ${TARGET_LIST[*]}"
