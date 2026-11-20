@@ -64,18 +64,28 @@ fi
 source "$SCRIPT_DIR/common.sh"
 source "$SCRIPT_DIR/state.sh"
 
+prompt_adopt_unmanaged_tools() {
+  bash "$SCRIPT_DIR/adopt.sh" --prompt
+}
+
 DRY_RUN=false
+VERBOSE=false
 args=()
 for arg in "$@"; do
   case "$arg" in
     --dry-run|-n)
       DRY_RUN=true
       ;;
+    --verbose|-v)
+      VERBOSE=true
+      ;;
     *)
       args+=("$arg")
       ;;
   esac
 done
+
+tool_shed_set_verbose "$VERBOSE"
 
 if [[ ${#args[@]} -eq 0 ]]; then
   args=("full")
@@ -173,20 +183,29 @@ if [[ "$DRY_RUN" == true ]]; then
   printf '  - %s\n' "${TARGET_LIST[@]}"
 fi
 
+tool_shed_progress_init "install" "${#TARGET_LIST[@]}"
+
 failures=0
 for tool in "${TARGET_LIST[@]}"; do
+  tool_shed_progress_start_tool "$tool" 6
+  tool_shed_progress_tick_tool "dispatch"
   module_installer="$REPO_ROOT/$tool/install.sh"
   if [[ ! -f "$module_installer" ]]; then
     echo "Missing module installer: $module_installer"
     failures=$((failures + 1))
+    tool_shed_progress_finish_tool
     continue
   fi
 
-  if ! DRY_RUN="$DRY_RUN" PYTHON_PACKAGE_PROFILE="$PYTHON_PACKAGE_PROFILE" GO_PACKAGE_PROFILE="$GO_PACKAGE_PROFILE" NODE_PACKAGE_PROFILE="$NODE_PACKAGE_PROFILE" TOOL_SHED_OS_OVERRIDE="${TOOL_SHED_OS_OVERRIDE:-}" TOOL_SHED_REPO="${TOOL_SHED_REPO:-}" TOOL_SHED_REF="${TOOL_SHED_REF:-}" bash "$module_installer"; then
+  if ! DRY_RUN="$DRY_RUN" PYTHON_PACKAGE_PROFILE="$PYTHON_PACKAGE_PROFILE" GO_PACKAGE_PROFILE="$GO_PACKAGE_PROFILE" NODE_PACKAGE_PROFILE="$NODE_PACKAGE_PROFILE" TOOL_SHED_OS_OVERRIDE="${TOOL_SHED_OS_OVERRIDE:-}" TOOL_SHED_REPO="${TOOL_SHED_REPO:-}" TOOL_SHED_REF="${TOOL_SHED_REF:-}" TOOL_SHED_VERBOSE="${TOOL_SHED_VERBOSE:-0}" TOOL_SHED_PROGRESS="${TOOL_SHED_PROGRESS:-auto}" tool_shed_run_with_output_mode bash "$module_installer"; then
     echo "Module install failed: $tool"
     failures=$((failures + 1))
   fi
+  tool_shed_progress_tick_tool "complete"
+  tool_shed_progress_finish_tool
 done
+
+tool_shed_progress_finish
 
 for arg in "${args[@]}"; do
   DRY_RUN="$DRY_RUN" tool_state_record_bundle "$arg"
@@ -197,6 +216,8 @@ if (( failures > 0 )); then
   [[ -n "$LOG_FILE" ]] && echo "Full log: $LOG_FILE"
   exit 1
 fi
+
+prompt_adopt_unmanaged_tools
 
 if [[ "$DRY_RUN" == true ]]; then
   echo "Dry run complete for: ${TARGET_LIST[*]}"
