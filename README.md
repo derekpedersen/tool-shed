@@ -70,6 +70,66 @@ bash ./.tools/install.sh full
 curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools/install.sh | bash -s -- full
 ```
 
+### Download the compiled tool-shed binary
+
+Phase 1 adds cross-compiled binaries under `.bin/tool-shed` so they can be committed and downloaded with `curl` from GitHub raw content.
+
+Supported release targets currently include:
+
+- macOS: `darwin-amd64`, `darwin-arm64`
+- Linux: `linux-amd64`, `linux-arm64`, `linux-386`, `linux-armv5`, `linux-armv6`, `linux-armv7`, `linux-riscv64`
+- Windows: `windows-amd64.exe`, `windows-arm64.exe`, `windows-386.exe`
+
+Raspberry Pi mapping:
+
+- Pi OS 32-bit on older boards: `linux-armv6` or `linux-armv7`
+- Pi OS 64-bit on newer boards: `linux-arm64`
+
+BeagleBoard mapping:
+
+- BeagleBone Black and similar ARMv7 boards: `linux-armv7`
+- 64-bit ARM Beagle platforms: `linux-arm64`
+- BeagleV and other RISC-V platforms: `linux-riscv64`
+
+Legacy 32-bit mapping:
+
+- x86 32-bit Linux: `linux-386`
+- x86 32-bit Windows: `windows-386.exe`
+- older 32-bit ARM Linux: `linux-armv5`, `linux-armv6`, or `linux-armv7`
+
+Arduino note:
+
+- Classic Arduino boards (AVR and bare-metal ARM microcontrollers) are not supported targets for this Go CLI binary.
+- Linux-capable companion boards can run the Linux artifacts that match their CPU architecture.
+
+Build artifacts and checksums:
+
+```bash
+make toolshed-release
+ls ./.bin/tool-shed
+cat ./.bin/tool-shed/SHA256SUMS
+```
+
+Example downloads from `main`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bin/tool-shed/tool-shed-darwin-arm64 -o tool-shed
+chmod +x ./tool-shed
+./tool-shed list
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bin/tool-shed/tool-shed-linux-amd64 -o tool-shed
+chmod +x ./tool-shed
+./tool-shed update --dry-run
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bin/tool-shed/tool-shed-linux-386 -o tool-shed
+chmod +x ./tool-shed
+./tool-shed list
+```
+
 ## What is in the shed
 
 | Domain | Location | Purpose |
