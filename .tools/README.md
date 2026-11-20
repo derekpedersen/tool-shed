@@ -136,6 +136,13 @@ bundle, so newly added bundle members are never installed by an update.
 	package profiles. This is a separate opt-in: those packages can have breaking
 	changes. Python uses only the existing managed virtual environment; it never
 	writes into system Python. CRAN and project dependencies are not updated.
+- Install, update, and uninstall now show two progress rows: overall target
+	completion and current-tool sub-step completion. In non-interactive output,
+	the same information is emitted as textual snapshots at each step.
+- `--verbose` prints module command output while a command runs; default mode keeps
+	module output compact and only surfaces details automatically when a module fails.
+- `TOOL_SHED_PROGRESS=off` disables progress rendering, `on` forces it, and `auto`
+	(default) chooses dynamic output for TTYs and textual snapshots for non-TTY output.
 - Adoption defaults to the `full` developer profile. Use aliases such as
 	`--adopt python-ai`, `--adopt go-core`, or `--adopt node-core` to select the
 	original profile. Adopting `ai` selects the corresponding AI profiles.

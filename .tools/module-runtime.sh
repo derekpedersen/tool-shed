@@ -57,16 +57,20 @@ source "$TOOLS_DIR/state.sh"
 module_install() {
   local tool already_present=false
   tool="$(canonical_tool_name "$1")"
+  tool_shed_progress_tick_tool "precheck"
   case "$tool" in
     identity|git-config|git-signing|ssh-key)
       module_install_impl "$tool"
+      tool_shed_progress_tick_tool "configure"
       return
       ;;
   esac
   if catalog_tool_present "$tool"; then
     already_present=true
   fi
+  tool_shed_progress_tick_tool "install"
   module_install_impl "$tool"
+  tool_shed_progress_tick_tool "record"
   if [[ "${DRY_RUN:-false}" != true ]]; then
     if [[ "$already_present" == false ]] || tool_state_has "$tool"; then
       tool_state_record "$tool"

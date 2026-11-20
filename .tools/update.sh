@@ -22,6 +22,7 @@ for arg in "$@"; do
     --list) list_mode=true ;;
     --adopt) adopt_mode=true ;;
     --dry-run|-n) ;;
+    --verbose|-v) ;;
     --allow-major|--include-services|--yes|--with-packages)
       list_args+=("$arg")
       ;;
@@ -49,11 +50,14 @@ usage() {
   echo "  --include-services  Include database/service tools (requires --yes)"
   echo "  --yes               Confirm service-update restart and migration risks"
   echo "  --with-packages     Also update recorded Python/Go/Node developer profiles"
+  echo "  --verbose, -v       Show command-level output during updates"
+  echo "Env: TOOL_SHED_PROGRESS=auto|on|off controls progress rendering mode"
 }
 
 export DRY_RUN=false UPDATE_ALLOW_MAJOR=false UPDATE_INCLUDE_SERVICES=false UPDATE_YES=false UPDATE_WITH_PACKAGES=false
 adopt=false
 list=false
+verbose=false
 declare -a targets=()
 for arg in "$@"; do
   case "$arg" in
@@ -64,11 +68,14 @@ for arg in "$@"; do
     --include-services) UPDATE_INCLUDE_SERVICES=true ;;
     --yes) UPDATE_YES=true ;;
     --with-packages) UPDATE_WITH_PACKAGES=true ;;
+    --verbose|-v) verbose=true ;;
     --help|-h) usage; exit 0 ;;
     -*) echo "Unknown option: $arg" >&2; usage; exit 2 ;;
     *) targets+=("$arg") ;;
   esac
 done
+
+tool_shed_set_verbose "$verbose"
 
 if [[ "$list" == true ]]; then
   echo "Managed tools:"
@@ -157,7 +164,7 @@ if [[ "$DRY_RUN" != true ]]; then
     echo "Another update is running, or a stale lock needs review: $lock_dir" >&2
     exit 1
   fi
-  trap 'rmdir "$lock_dir"' EXIT
+  trap '[[ -n "${lock_dir:-}" && -d "$lock_dir" ]] && rmdir "$lock_dir" || true' EXIT
   log_dir="${TOOL_SHED_LOG_DIR:-$HOME/.tool-shed/logs}"
   mkdir -p "$log_dir"
   log_file="$log_dir/update-$(date +%Y%m%d-%H%M%S)-$$.log"
@@ -165,15 +172,25 @@ if [[ "$DRY_RUN" != true ]]; then
   echo "Full log: $log_file"
 fi
 
+release_update_lock() {
+  if [[ -n "${lock_dir:-}" && -d "$lock_dir" ]]; then
+    rmdir "$lock_dir" || true
+  fi
+  lock_dir=""
+}
+
 successful=0
 skipped=0
 failures=0
 export TOOL_SHED_UPDATE_REFRESHED=false
+tool_shed_progress_init "update" "${#ordered[@]}"
 for tool in "${ordered[@]}"; do
+  tool_shed_progress_start_tool "$tool" 8
+  tool_shed_progress_tick_tool "dispatch"
   echo "==> $tool"
   if [[ "$adopt" == true ]]; then
     case "$tool" in
-      identity|git-config|git-signing|ssh-key) echo "Not applicable: $tool"; skipped=$((skipped + 1)); continue ;;
+      identity|git-config|git-signing|ssh-key) echo "Not applicable: $tool"; skipped=$((skipped + 1)); tool_shed_progress_tick_tool "skip"; tool_shed_progress_tick_tool "skip"; tool_shed_progress_tick_tool "skip"; tool_shed_progress_finish_tool; continue ;;
     esac
     if tool_state_has "$tool"; then
       echo "Already managed: $tool"
@@ -191,6 +208,10 @@ for tool in "${ordered[@]}"; do
       echo "Adoption failed: $tool"
       failures=$((failures + 1))
     fi
+    tool_shed_progress_tick_tool "adopt"
+    tool_shed_progress_tick_tool "adopt"
+    tool_shed_progress_tick_tool "adopt"
+    tool_shed_progress_finish_tool
     continue
   fi
 
@@ -206,16 +227,23 @@ for tool in "${ordered[@]}"; do
         ;;
     esac
   fi
+  tool_shed_progress_tick_tool "preflight"
   status=0
-  TOOL_SHED_UPDATE_INTERNAL=true bash "$REPO_ROOT/$tool/update.sh" || status=$?
+  TOOL_SHED_UPDATE_INTERNAL=true TOOL_SHED_VERBOSE="${TOOL_SHED_VERBOSE:-0}" TOOL_SHED_PROGRESS="${TOOL_SHED_PROGRESS:-auto}" tool_shed_run_with_output_mode bash "$REPO_ROOT/$tool/update.sh" || status=$?
+  tool_shed_progress_tick_tool "result"
   case "$status" in
     0) successful=$((successful + 1)) ;;
     3) skipped=$((skipped + 1)) ;;
     *) echo "FAILED: $tool (exit $status)"; failures=$((failures + 1)) ;;
   esac
+  tool_shed_progress_tick_tool "result"
+  tool_shed_progress_finish_tool
 done
 
+tool_shed_progress_finish
+
 if [[ "$adopt" == false ]]; then
+  release_update_lock
   prompt_adopt_unmanaged_tools || true
 fi
 

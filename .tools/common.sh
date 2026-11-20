@@ -255,6 +255,156 @@ ALL_TOOLS=("${UPDATEABLE_TOOLS[@]}" git-config git-signing identity ssh-key)
 COMMON_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
 REPO_ROOT="$(cd "$COMMON_TOOLS_DIR/.." && pwd)"
 
+TOOL_SHED_VERBOSE="${TOOL_SHED_VERBOSE:-0}"
+TOOL_SHED_PROGRESS="${TOOL_SHED_PROGRESS:-auto}"
+TOOL_SHED_PROGRESS_ENABLED=false
+TOOL_SHED_PROGRESS_TEXT=false
+TOOL_SHED_PROGRESS_LABEL=""
+TOOL_SHED_PROGRESS_TOTAL=0
+TOOL_SHED_PROGRESS_DONE=0
+TOOL_SHED_PROGRESS_TOOL=""
+TOOL_SHED_PROGRESS_TOOL_BASE=""
+TOOL_SHED_PROGRESS_TOOL_TOTAL=0
+TOOL_SHED_PROGRESS_TOOL_DONE=0
+
+tool_shed_set_verbose() {
+  local enabled="${1:-false}"
+  if [[ "$enabled" == true ]]; then
+    TOOL_SHED_VERBOSE=1
+  else
+    TOOL_SHED_VERBOSE=0
+  fi
+  export TOOL_SHED_VERBOSE
+}
+
+tool_shed_verbose_enabled() {
+  [[ "${TOOL_SHED_VERBOSE:-0}" == "1" ]]
+}
+
+tool_shed_print_verbose() {
+  tool_shed_verbose_enabled || return 0
+  printf '%s\n' "$*"
+}
+
+# Keep module output concise unless verbose mode is enabled.
+tool_shed_run_with_output_mode() {
+  if tool_shed_verbose_enabled; then
+    "$@"
+    return $?
+  fi
+
+  local captured
+  local status=0
+  captured="$(mktemp)"
+  "$@" >"$captured" 2>&1 || status=$?
+  if [[ "$status" != 0 ]]; then
+    cat "$captured"
+  fi
+  rm -f "$captured"
+  return "$status"
+}
+
+tool_shed_progress_bar() {
+  local done="$1"
+  local total="$2"
+  local width=24
+  local filled=0
+  local percent=0
+
+  if (( total > 0 )); then
+    percent=$((done * 100 / total))
+    filled=$((done * width / total))
+  fi
+  (( percent > 100 )) && percent=100
+  (( filled > width )) && filled=width
+
+  local bar=""
+  local index
+  for ((index = 0; index < filled; index++)); do
+    bar+="#"
+  done
+  for ((index = filled; index < width; index++)); do
+    bar+="-"
+  done
+
+  printf '[%s] %3d%% (%d/%d)' "$bar" "$percent" "$done" "$total"
+}
+
+tool_shed_progress_render() {
+  [[ "$TOOL_SHED_PROGRESS_ENABLED" == true || "$TOOL_SHED_PROGRESS_TEXT" == true ]] || return 0
+
+  local overall_line
+  local tool_line
+  overall_line="Overall  $(tool_shed_progress_bar "$TOOL_SHED_PROGRESS_DONE" "$TOOL_SHED_PROGRESS_TOTAL") ${TOOL_SHED_PROGRESS_LABEL}"
+  tool_line="Current  ${TOOL_SHED_PROGRESS_TOOL:-idle} $(tool_shed_progress_bar "$TOOL_SHED_PROGRESS_TOOL_DONE" "$TOOL_SHED_PROGRESS_TOOL_TOTAL")"
+
+  printf '%s\n' "$overall_line"
+  printf '%s\n' "$tool_line"
+}
+
+tool_shed_progress_init() {
+  local label="$1"
+  local total="${2:-0}"
+  local mode="${TOOL_SHED_PROGRESS:-auto}"
+
+  TOOL_SHED_PROGRESS_LABEL="$label"
+  TOOL_SHED_PROGRESS_TOTAL="$total"
+  TOOL_SHED_PROGRESS_DONE=0
+  TOOL_SHED_PROGRESS_TOOL="idle"
+  TOOL_SHED_PROGRESS_TOOL_TOTAL=1
+  TOOL_SHED_PROGRESS_TOOL_DONE=0
+
+  TOOL_SHED_PROGRESS_ENABLED=false
+  TOOL_SHED_PROGRESS_TEXT=false
+  if [[ "$mode" == on ]]; then
+    TOOL_SHED_PROGRESS_ENABLED=true
+  elif [[ "$mode" == off ]]; then
+    TOOL_SHED_PROGRESS_ENABLED=false
+    TOOL_SHED_PROGRESS_TEXT=false
+  elif [[ -t 1 ]]; then
+    TOOL_SHED_PROGRESS_ENABLED=true
+  else
+    TOOL_SHED_PROGRESS_TEXT=true
+  fi
+
+  tool_shed_progress_render
+}
+
+tool_shed_progress_start_tool() {
+  TOOL_SHED_PROGRESS_TOOL_BASE="$1"
+  TOOL_SHED_PROGRESS_TOOL="$1"
+  TOOL_SHED_PROGRESS_TOOL_TOTAL="${2:-1}"
+  TOOL_SHED_PROGRESS_TOOL_DONE=0
+  tool_shed_progress_render
+}
+
+tool_shed_progress_tick_tool() {
+  local phase="${1:-}"
+  if [[ -n "$phase" && -n "$TOOL_SHED_PROGRESS_TOOL_BASE" ]]; then
+    TOOL_SHED_PROGRESS_TOOL="$TOOL_SHED_PROGRESS_TOOL_BASE:$phase"
+  fi
+  if (( TOOL_SHED_PROGRESS_TOOL_DONE < TOOL_SHED_PROGRESS_TOOL_TOTAL )); then
+    TOOL_SHED_PROGRESS_TOOL_DONE=$((TOOL_SHED_PROGRESS_TOOL_DONE + 1))
+  fi
+  tool_shed_progress_render
+}
+
+tool_shed_progress_finish_tool() {
+  TOOL_SHED_PROGRESS_TOOL_DONE="$TOOL_SHED_PROGRESS_TOOL_TOTAL"
+  if (( TOOL_SHED_PROGRESS_DONE < TOOL_SHED_PROGRESS_TOTAL )); then
+    TOOL_SHED_PROGRESS_DONE=$((TOOL_SHED_PROGRESS_DONE + 1))
+  fi
+  tool_shed_progress_render
+}
+
+tool_shed_progress_finish() {
+  TOOL_SHED_PROGRESS_TOOL="complete"
+  TOOL_SHED_PROGRESS_TOOL_TOTAL=1
+  TOOL_SHED_PROGRESS_TOOL_DONE=1
+  TOOL_SHED_PROGRESS_DONE="$TOOL_SHED_PROGRESS_TOTAL"
+  tool_shed_progress_render
+}
+
 get_tool_package_list() {
   local tool_name="${1:-}"
   local profile="${2:-full}"
