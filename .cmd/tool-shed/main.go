@@ -8,8 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/derekpedersen/tool-shed/.cmd/internal/catalog"
 	"github.com/derekpedersen/tool-shed/.cmd/internal/manifest"
+	"github.com/derekpedersen/tool-shed/.cmd/internal/nativebackend"
 	"github.com/derekpedersen/tool-shed/.cmd/internal/resolver"
+	"github.com/derekpedersen/tool-shed/.cmd/internal/state"
 )
 
 var commandScripts = map[string]string{
@@ -28,40 +31,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-}
-
-func run(args []string) error {
-	parsed, err := parseArgs(args)
-	if err != nil {
-		return err
-	}
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("determine working directory: %w", err)
-	}
-
-	repoRoot, err := findRepoRoot(cwd)
-	if err != nil {
-		return err
-	}
-
-	if parsed.runtime == "go" {
-		switch parsed.command {
-		case "install":
-			return runInstallGoRuntime(repoRoot, parsed.passthrough)
-		case "update":
-			return runUpdateGoRuntime(repoRoot, parsed.passthrough)
-		case "uninstall":
-			return runUninstallGoRuntime(repoRoot, parsed.passthrough)
-		case "list":
-			return runListGoRuntime(repoRoot, parsed.passthrough)
-		default:
-			// Phase 2 keeps shell backends for non-install commands.
-		}
-	}
-
-	return runShellCommand(repoRoot, parsed.command, parsed.passthrough)
 }
 
 func runShellCommand(repoRoot string, command string, passthrough []string) error {
@@ -85,14 +54,30 @@ func runShellCommand(repoRoot string, command string, passthrough []string) erro
 
 type parsedArgs struct {
 	runtime     string
+	backend     string
 	command     string
 	passthrough []string
+}
+
+type nativeOptions struct {
+	dryRun          bool
+	targets         []string
+	allowMajor      bool
+	includeServices bool
+	yes             bool
+	withPackages    bool
+	adopt           bool
+	list            bool
 }
 
 func parseArgs(args []string) (parsedArgs, error) {
 	runtime := os.Getenv("TOOL_SHED_RUNTIME")
 	if runtime == "" {
 		runtime = "shell"
+	}
+	backend := os.Getenv("TOOL_SHED_BACKEND")
+	if backend == "" {
+		backend = "shell"
 	}
 
 	if len(args) == 0 {
@@ -113,6 +98,16 @@ func parseArgs(args []string) (parsedArgs, error) {
 		case strings.HasPrefix(arg, "--runtime="):
 			runtime = strings.TrimPrefix(arg, "--runtime=")
 			i++
+		case arg == "--backend":
+			i++
+			if i >= len(args) {
+				return parsedArgs{}, usageError("--backend requires a value")
+			}
+			backend = args[i]
+			i++
+		case strings.HasPrefix(arg, "--backend="):
+			backend = strings.TrimPrefix(arg, "--backend=")
+			i++
 		default:
 			goto parseCommand
 		}
@@ -121,6 +116,9 @@ func parseArgs(args []string) (parsedArgs, error) {
 parseCommand:
 	if runtime != "shell" && runtime != "go" {
 		return parsedArgs{}, usageError(fmt.Sprintf("invalid runtime: %s", runtime))
+	}
+	if backend != "shell" && backend != "native" {
+		return parsedArgs{}, usageError(fmt.Sprintf("invalid backend: %s", backend))
 	}
 	if i >= len(args) {
 		return parsedArgs{}, usageError("missing command")
@@ -135,15 +133,240 @@ parseCommand:
 		return parsedArgs{}, usageError(fmt.Sprintf("unknown command: %s", command))
 	}
 
-	return parsedArgs{runtime: runtime, command: command, passthrough: args[i+1:]}, nil
+	return parsedArgs{runtime: runtime, backend: backend, command: command, passthrough: args[i+1:]}, nil
 }
 
 func usageError(detail string) error {
 	if detail != "" {
 		fmt.Fprintln(os.Stderr, detail)
 	}
-	fmt.Fprintln(os.Stderr, "Usage: tool-shed [--runtime shell|go] [install|update|uninstall|list] [args...]")
+	fmt.Fprintln(os.Stderr, "Usage: tool-shed [--runtime shell|go] [--backend shell|native] [install|update|uninstall|list] [args...]")
 	return errors.New("invalid arguments")
+}
+
+func run(args []string) error {
+	parsed, err := parseArgs(args)
+	if err != nil {
+		return err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("determine working directory: %w", err)
+	}
+
+	repoRoot, err := findRepoRoot(cwd)
+	if err != nil {
+		return err
+	}
+
+	if parsed.runtime == "go" {
+		if parsed.backend == "native" {
+			if err := runNativeBackend(repoRoot, parsed.command, parsed.passthrough); err != nil {
+				if errors.Is(err, nativebackend.ErrNoSupportedTools) {
+					fmt.Fprintln(os.Stdout, "Falling back to shell backend for compatibility.")
+					return runShellCommand(repoRoot, parsed.command, parsed.passthrough)
+				}
+				return err
+			}
+			return nil
+		}
+
+		switch parsed.command {
+		case "install":
+			return runInstallGoRuntime(repoRoot, parsed.passthrough)
+		case "update":
+			return runUpdateGoRuntime(repoRoot, parsed.passthrough)
+		case "uninstall":
+			return runUninstallGoRuntime(repoRoot, parsed.passthrough)
+		case "list":
+			return runListGoRuntime(repoRoot, parsed.passthrough)
+		default:
+			// Go runtime only supports known command names.
+		}
+	}
+
+	return runShellCommand(repoRoot, parsed.command, parsed.passthrough)
+}
+
+func runNativeBackend(repoRoot string, command string, args []string) error {
+	c, err := catalog.Load(repoRoot)
+	if err != nil {
+		return err
+	}
+	m, err := manifest.Load(repoRoot)
+	if err != nil {
+		return err
+	}
+	b := nativebackend.New(c)
+
+	opts := parseNativeOptions(args)
+	stateDir := getStateDir()
+
+	switch command {
+	case "install":
+		if len(opts.targets) == 0 {
+			opts.targets = []string{"full"}
+			fmt.Fprintln(os.Stdout, "No install target provided. Defaulting to: full")
+		}
+		resolved := resolver.Resolve(m, opts.targets)
+		if !allNativeSupported(b, resolved) {
+			return nativebackend.ErrNoSupportedTools
+		}
+		return b.Install(resolved, opts.dryRun)
+	case "uninstall":
+		if len(opts.targets) == 0 {
+			return errors.New("an explicit uninstall target is required; refusing to default to the full bundle")
+		}
+		resolved := resolver.Resolve(m, opts.targets)
+		if !allNativeSupported(b, resolved) {
+			return nativebackend.ErrNoSupportedTools
+		}
+		return b.Uninstall(resolved, opts.dryRun)
+	case "update":
+		if opts.adopt || opts.list || opts.withPackages {
+			return nativebackend.ErrNoSupportedTools
+		}
+		if len(opts.targets) == 0 {
+			names, err := state.ListToolRecordNames(stateDir)
+			if err != nil {
+				return err
+			}
+			opts.targets = names
+		}
+		resolved := resolver.Resolve(m, opts.targets)
+		if len(resolved) == 0 {
+			fmt.Fprintln(os.Stdout, "No managed tools recorded. Use --adopt TOOL or --adopt BUNDLE for existing installations.")
+			return nil
+		}
+		eligible, err := filterNativeUpdateTargets(stateDir, resolved, opts)
+		if err != nil {
+			return err
+		}
+		if len(eligible) == 0 {
+			fmt.Fprintln(os.Stdout, "No eligible managed tools for native update after policy checks.")
+			return nil
+		}
+		if !allNativeSupported(b, eligible) {
+			return nativebackend.ErrNoSupportedTools
+		}
+		return b.Update(eligible, opts.dryRun)
+	case "list":
+		var resolved []string
+		if len(opts.targets) == 0 {
+			names, err := state.ListToolRecordNames(stateDir)
+			if err != nil {
+				return err
+			}
+			if len(names) == 0 {
+				fmt.Fprintln(os.Stdout, "No managed tools recorded. Use --adopt TOOL or --adopt BUNDLE for existing installations.")
+				return nil
+			}
+			resolved = names
+		} else {
+			resolved = resolver.Resolve(m, opts.targets)
+		}
+		if len(resolved) == 0 {
+			fmt.Fprintln(os.Stdout, "No valid list targets were resolved.")
+			return nil
+		}
+		if !allNativeSupported(b, resolved) {
+			return nativebackend.ErrNoSupportedTools
+		}
+		return b.List(resolved)
+	default:
+		return fmt.Errorf("unsupported command for native backend: %s", command)
+	}
+}
+
+func parseNativeOptions(args []string) nativeOptions {
+	opts := nativeOptions{targets: make([]string, 0, len(args))}
+	for _, arg := range args {
+		switch arg {
+		case "--dry-run", "-n":
+			opts.dryRun = true
+		case "--allow-major":
+			opts.allowMajor = true
+		case "--include-services":
+			opts.includeServices = true
+		case "--yes":
+			opts.yes = true
+		case "--with-packages":
+			opts.withPackages = true
+		case "--adopt":
+			opts.adopt = true
+		case "--list":
+			opts.list = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				continue
+			}
+			opts.targets = append(opts.targets, arg)
+		}
+	}
+	return opts
+}
+
+func getStateDir() string {
+	stateDir := os.Getenv("TOOL_SHED_STATE_DIR")
+	if stateDir != "" {
+		return stateDir
+	}
+	return filepath.Join(os.Getenv("HOME"), ".tool-shed", "state")
+}
+
+func filterNativeUpdateTargets(stateDir string, resolved []string, opts nativeOptions) ([]string, error) {
+	eligible := make([]string, 0, len(resolved))
+	for _, tool := range resolved {
+		recordPath := filepath.Join(stateDir, "tools", tool)
+		record, err := state.ReadToolRecord(recordPath)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				fmt.Fprintf(os.Stdout, "SKIPPED %s is not managed. Use .tools/update.sh --adopt %s first.\n", tool, tool)
+				continue
+			}
+			return nil, err
+		}
+		_ = record
+
+		pinPath := filepath.Join(stateDir, "pins", tool)
+		if _, err := os.Stat(pinPath); err == nil {
+			fmt.Fprintf(os.Stdout, "SKIPPED %s is pinned in the tool-shed state directory.\n", tool)
+			continue
+		} else if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		}
+
+		if isServiceTool(tool) && (!opts.includeServices || !opts.yes) {
+			fmt.Fprintf(os.Stdout, "SKIPPED %s requires --include-services --yes after taking a backup; updates may restart services.\n", tool)
+			continue
+		}
+		if tool == "julia" && !opts.allowMajor {
+			fmt.Fprintln(os.Stdout, "SKIPPED Julia updates require --allow-major after reviewing the selected Juliaup channels.")
+			continue
+		}
+
+		eligible = append(eligible, tool)
+	}
+	return eligible, nil
+}
+
+func isServiceTool(tool string) bool {
+	switch tool {
+	case "postgres", "redis", "mysql", "mongodb", "rabbitmq", "elasticsearch", "kafka", "docker":
+		return true
+	default:
+		return false
+	}
+}
+
+func allNativeSupported(b *nativebackend.Backend, tools []string) bool {
+	for _, tool := range tools {
+		if !b.Supports(tool) {
+			return false
+		}
+	}
+	return true
 }
 
 func runInstallGoRuntime(repoRoot string, args []string) error {

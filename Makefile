@@ -123,7 +123,7 @@ test: test-updates
 
 toolshed-build:
 	@mkdir -p $(TOOLSHED_RELEASE_DIR)
-	@go test ./.cmd/tool-shed ./.cmd/internal/manifest ./.cmd/internal/resolver ./.cmd/internal/state
+	@go test ./.cmd/tool-shed ./.cmd/internal/catalog ./.cmd/internal/manifest ./.cmd/internal/nativebackend ./.cmd/internal/resolver ./.cmd/internal/state
 	@go build -o $(TOOLSHED_RELEASE_DIR)/tool-shed-local ./.cmd/tool-shed
 
 toolshed-release:

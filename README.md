@@ -80,12 +80,23 @@ Runtime mode selection:
 - Use `--runtime go` to enable the Go-owned deterministic path.
 - Use `--runtime shell` (or `TOOL_SHED_RUNTIME=shell`) to force script execution.
 
+Backend mode selection (Go runtime only):
+
+- Default backend mode is `shell`.
+- Use `--backend native` (or `TOOL_SHED_BACKEND=native`) to attempt native package-manager execution.
+- Native backend currently supports Homebrew mappings on macOS, apt mappings on Linux, and winget mappings on Windows; unsupported requests fall back to shell mode.
+
 Examples:
 
 ```bash
 ./tool-shed --runtime go install cloud --dry-run
+./tool-shed --runtime go --backend native install cloud --dry-run
+./tool-shed --runtime go --backend native update golang kubectl --dry-run
 TOOL_SHED_RUNTIME=shell ./tool-shed install cloud --dry-run
 ```
+
+The mixed-target example above includes a package-manager target (`golang`) and a direct-managed target (`kubectl`).
+When native mode cannot cover every requested target, tool-shed automatically falls back to the shell backend to preserve verified update and safety behavior.
 
 Supported release targets currently include:
 

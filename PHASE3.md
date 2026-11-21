@@ -66,3 +66,15 @@ This phase adds a high-performance native path without removing trusted script w
 - Verification and policy enforcement modules.
 - Backend selector with shell fallback option.
 - Expanded integration test suite.
+
+## Completion Status (2026-11-21)
+- Implemented: backend selector with shell and native modes.
+- Implemented: native package-manager adapters for Homebrew (macOS), apt (Linux), and winget or winget-store (Windows).
+- Implemented: policy-gate parity in native update flow for service confirmation (`--include-services --yes`), module pin skips, and Julia major-version gate (`--allow-major`).
+- Implemented: native list with no explicit targets now resolves from managed state.
+- Implemented: compatibility fallback to shell backend when requested targets are not fully supported by native mode or when parity-sensitive options (for example `--with-packages`) require shell behavior.
+- Co-live model remains intact: shell backend is still supported and documented as the compatibility path.
+
+Notes:
+- Verified direct-download update logic (checksums, signatures, strict HTTPS) remains enforced through shell fallback for now.
+- Current test coverage includes adapter behavior and fallback/policy unit tests; full cross-platform integration matrix remains a follow-up hardening task.
