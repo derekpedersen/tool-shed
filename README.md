@@ -56,6 +56,27 @@ bash ./update.sh --dry-run
 bash ./update.sh
 ```
 
+Root scripts are runtime selectors. They prompt for runtime when `--runtime` is not set, and dispatch to either shell or Go execution paths.
+
+Root wrappers also support explicit runtime and backend selection:
+
+```bash
+bash ./list.sh --runtime go --backend native cloud
+bash ./update.sh --runtime go --backend native --dry-run cloud
+bash ./uninstall.sh --runtime go --backend native cloud --dry-run
+```
+
+If a Go binary is not available locally, wrappers automatically fall back to shell mode.
+
+Shell-only wrappers now live under `.scripts/`:
+
+```bash
+bash ./.scripts/install.sh
+bash ./.scripts/list.sh
+bash ./.scripts/uninstall.sh cloud --dry-run
+bash ./.scripts/update.sh --dry-run
+```
+
 ### Install the helper loft only
 
 ```bash
@@ -129,6 +150,24 @@ make toolshed-release
 ls ./.bin/tool-shed
 cat ./.bin/tool-shed/SHA256SUMS
 ```
+
+Verify downloaded artifacts:
+
+```bash
+# Example: verify Linux amd64 artifact against published checksums
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bin/tool-shed/tool-shed-linux-amd64 -o tool-shed
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.bin/tool-shed/SHA256SUMS -o SHA256SUMS
+
+# Verify checksum (choose one available command)
+shasum -a 256 tool-shed
+grep 'tool-shed-linux-amd64' SHA256SUMS
+```
+
+Signature guidance:
+
+- Current release verification publishes SHA256 checksums.
+- Detached signatures for release artifacts are not yet published in this repository.
+- Until signatures are introduced, treat checksum verification plus trusted GitHub source refs as the supported verification path.
 
 Example downloads from `main`:
 

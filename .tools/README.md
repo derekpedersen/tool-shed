@@ -4,6 +4,12 @@ Installer/runtime layer for the repo's bundle-based tool installation flow.
 
 This folder contains the controller and platform logic that resolves bundles, dispatches module installers, and keeps the cross-platform behavior in one place. Individual tool packages continue to live as repo-root directories such as [docker](docker), [kubectl](kubectl), [aws](aws), [gcloud](gcloud), and [git](git).
 
+Root script layout:
+
+- Root `install.sh`, `list.sh`, `update.sh`, and `uninstall.sh` are runtime selectors.
+- Shell-only root behavior now lives under `.scripts/`.
+- Runtime selectors dispatch to Go or shell paths and preserve fallback safety semantics.
+
 Canonical bundle names are defined in `common.sh` and intentionally limited to:
 
 - `full` (default)
@@ -39,6 +45,7 @@ the `.services` Compose stack.
 ```bash
 bash update.sh --dry-run            # Preview all recorded, installed tools
 bash update.sh                      # Update those tools
+bash .scripts/update.sh --dry-run   # Force shell-only update wrapper
 bash .tools/update.sh cloud         # Only installed, managed cloud bundle members
 bash .tools/update.sh git kubectl    # Selected tools, with aliases supported
 bash jq/update.sh --dry-run         # Individual module, same options and guards
@@ -52,6 +59,7 @@ compatibility. The standalone command does not load the update runtime:
 bash ./list.sh
 bash ./list.sh cloud
 bash ./list.sh git jq
+bash ./.scripts/list.sh cloud
 curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- cloud
 ```
 

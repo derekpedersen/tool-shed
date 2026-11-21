@@ -35,6 +35,7 @@ pipeline {
                         #!/usr/bin/env bash
                         set -euo pipefail
                         make test
+                        make toolshed-runtime-test
                     '''
                 }
             }

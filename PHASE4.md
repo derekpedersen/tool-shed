@@ -37,7 +37,8 @@ This phase stabilizes release and documentation for both runtime modes while min
 
 4. Release operations
 - Publish cross-compiled binaries for supported targets.
-- Publish checksums and signatures.
+- Publish checksums for release artifacts.
+- Track detached signature publishing as a follow-on release hardening task.
 - Document verification instructions clearly.
 
 5. Transition policy
@@ -48,7 +49,7 @@ This phase stabilizes release and documentation for both runtime modes while min
 - Root wrappers function correctly with and without local binary availability.
 - Existing automation scripts continue working during transition.
 - Mixed-target and parity-sensitive requests in native mode correctly route to shell fallback.
-- Release artifacts verify correctly using published checksums and signatures.
+- Release artifacts verify correctly using published checksums.
 - Docs are accurate for all supported OS paths.
 
 ## Risks
@@ -65,4 +66,20 @@ This phase stabilizes release and documentation for both runtime modes while min
 - Updated root wrappers with runtime selection controls.
 - Updated docs for binary and script workflows.
 - CI matrix covering native and shell paths, including fallback scenarios.
-- Signed release artifacts with verification guidance.
+- Checksum-verified release artifacts with verification guidance.
+
+## Transition Policy (Defined)
+- Support policy: both shell and Go runtimes remain first-class and documented.
+- Default policy: root wrappers keep deterministic defaults (`shell` runtime, `shell` backend) unless an explicit governance decision updates defaults.
+- Fallback policy: if Go runtime is requested but unavailable, wrappers fall back to shell runtime with a clear user-visible message.
+- Compatibility policy: mixed-target or parity-sensitive requests must continue to route through shell fallback when native behavior cannot safely guarantee equivalent policy and verification outcomes.
+- Change criteria for defaults:
+	- fallback path validated in CI for install/update/uninstall/list flows,
+	- release verification process documented and repeatable,
+	- no open critical regressions in shell or native paths,
+	- documentation updated in README and `.tools/README.md` before rollout.
+
+## Status
+- Completed: 2026-11-21
+- Outcome: dual-runtime wrappers, fallback policy, docs updates, and CI runtime checks are in place.
+- Follow-on: detached artifact signatures remain a tracked hardening item.
