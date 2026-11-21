@@ -32,6 +32,17 @@ The repository uses a module-vs-runtime split:
 - Keep comments short and purpose-oriented.
 - Update documentation when bundle names, tool names, or helper behavior change.
 
+README format standard:
+- Keep module READMEs concise and predictable using this section order:
+	1. short intro paragraph,
+	2. "Why this tool" bullets,
+	3. "Files" list,
+	4. "Usage" examples,
+	5. "Notes" for platform and safety behavior.
+- Use canonical bundle names only: `full`, `cloud`, `services`, `ai`, `software-developer`, `data-science`.
+- Root-runtime docs must reflect current behavior: root wrappers are runtime selectors, `.scripts/` contains shell-only wrappers, and Go runtime attempts matching prebuilt binary download before shell fallback.
+- Keep examples copy-paste ready (`bash ...` / `curl ... | bash -s -- ...`) and avoid stale paths or renamed script references.
+
 ## Shell guidelines
 - Use `set -euo pipefail` where appropriate.
 - Validate user input and provide helpful usage text.

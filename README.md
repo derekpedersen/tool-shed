@@ -75,7 +75,7 @@ bash ./update.sh --runtime go --backend native --dry-run cloud
 bash ./uninstall.sh --runtime go --backend native cloud --dry-run
 ```
 
-If a Go binary is not available locally, wrappers automatically fall back to shell mode.
+If a Go binary is not available locally, wrappers first try to download the matching prebuilt Go binary for the detected platform and architecture. If that download attempt is unavailable or fails, wrappers fall back to shell mode.
 
 When `--runtime go` is selected, root wrappers auto-detect platform and choose the matching prebuilt binary name:
 
