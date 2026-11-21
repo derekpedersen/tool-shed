@@ -1,17 +1,18 @@
 # PHASE2: Binary Owns Resolution, State, And UX Formatting
 
 ## Goal
-Move deterministic control-plane logic from shell into Go while still using shell for system mutation execution.
+Move deterministic control-plane logic into Go while preserving a long-term script path as an equal runtime mode.
 
 ## Why This Phase Exists
-This reduces complexity and drift by centralizing resolver and state behavior in typed code, while avoiding high-risk backend rewrites yet.
+This reduces complexity and drift by centralizing resolver and state behavior in typed code while keeping script-first usage fully supported.
 
 ## In Scope
 - Port bundle definitions and aliases into Go.
 - Port target expansion, canonicalization, deduplication, and order guarantees into Go.
 - Port managed state read and write compatibility into Go.
 - Port dry-run target rendering and progress formatting into Go.
-- Keep shell as backend executor for actual installs and updates.
+- Keep shell as backend executor for installs and updates when users choose script mode.
+- Add explicit runtime mode selection (`go` or `shell`) without changing user-visible behavior.
 
 ## Out Of Scope
 - Native package manager execution.
@@ -38,6 +39,7 @@ This reduces complexity and drift by centralizing resolver and state behavior in
 5. Backend bridge
 - Execute shell backend with Go-resolved targets.
 - Ensure requested package profile semantics remain intact.
+- Ensure runtime mode can be chosen via flag or environment variable.
 
 ## Validation Checklist
 - Full parity tests for canonical bundles: full, cloud, services, ai, software-developer, data-science.
@@ -56,6 +58,7 @@ This reduces complexity and drift by centralizing resolver and state behavior in
 ## Exit Criteria
 - Go resolver and state handling produce parity with current shell behavior.
 - Shell backend execution remains stable when fed by Go resolver output.
+- Runtime mode selection is explicit, documented, and stable.
 - No regression in dry-run readability and expected summaries.
 
 ## Deliverables

@@ -1,30 +1,30 @@
-# PHASE4: Binary-First Cutover And Compatibility Shims
+# PHASE4: Dual-Runtime Productization
 
 ## Goal
-Make the binary the default user path while preserving shell compatibility and providing a clear migration runway.
+Productize both runtime paths so users can reliably choose binary or script workflows.
 
 ## Why This Phase Exists
-This phase completes productization and distribution while minimizing disruption for existing users and automation.
+This phase stabilizes release and documentation for both runtime modes while minimizing disruption for existing users and automation.
 
 ## In Scope
-- Update root shell wrappers to prefer binary execution.
-- Keep shell fallback behavior for compatibility.
-- Update documentation for binary-first usage.
+- Update root shell wrappers with explicit runtime selection behavior.
+- Keep shell and binary modes both supported.
+- Update documentation for both runtime modes.
 - Add release artifact verification guidance.
-- Add CI coverage for native and fallback paths.
+- Add CI coverage for native and shell paths.
 
 ## Out Of Scope
-- Immediate removal of all legacy shell internals.
+- Immediate removal of shell internals.
 
 ## Implementation Tasks
 1. Root wrapper cutover
-- Update install.sh, update.sh, uninstall.sh, and list.sh to use binary when present.
-- Fallback to legacy shell path when binary is unavailable.
+- Update install.sh, update.sh, uninstall.sh, and list.sh to support explicit runtime selection.
+- Keep deterministic defaults and clear override semantics for script and binary modes.
 
 2. Documentation updates
-- Update README with binary install and usage examples.
-- Update .tools documentation to explain backend selection and fallback.
-- Document migration expectations for existing users.
+- Update README with binary and script usage examples.
+- Update .tools documentation to explain backend selection and support guarantees.
+- Document operational guidance for both runtime modes.
 
 3. CI and quality gates
 - Add CI jobs that validate binary-native backend behavior.
@@ -37,8 +37,8 @@ This phase completes productization and distribution while minimizing disruption
 - Document verification instructions clearly.
 
 5. Transition policy
-- Add non-breaking deprecation messaging for shell-first invocations.
-- Define a timeline for eventual legacy path reduction.
+- Define long-term support policy for script and binary runtimes.
+- Define criteria for changing defaults without removing either supported mode.
 
 ## Validation Checklist
 - Root wrappers function correctly with and without local binary availability.
@@ -52,12 +52,12 @@ This phase completes productization and distribution while minimizing disruption
 - Inconsistent local environments when binary and shell versions diverge.
 
 ## Exit Criteria
-- Binary-first flow is default and stable.
-- Compatibility shims preserve current workflows.
+- Dual-runtime flow is stable.
+- Script and binary modes are both documented and validated.
 - Release and verification process is repeatable and documented.
 
 ## Deliverables
-- Updated root wrappers with binary preference.
-- Updated docs for binary-first workflow.
-- CI matrix covering native and fallback paths.
+- Updated root wrappers with runtime selection controls.
+- Updated docs for binary and script workflows.
+- CI matrix covering native and shell paths.
 - Signed release artifacts with verification guidance.

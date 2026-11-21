@@ -1,21 +1,21 @@
-# PHASE3: Binary Owns Execution Backends
+# PHASE3: Native Backend Expansion (Co-Live With Scripts)
 
 ## Goal
-Migrate install, update, uninstall, and list execution backends from shell to native Go adapters while preserving safety and skip policies.
+Add native Go execution backends for install, update, uninstall, and list while preserving scripts as a permanent supported backend.
 
 ## Why This Phase Exists
-This phase removes the main runtime dependency on shell internals and gives full binary control over platform execution behavior.
+This phase adds a high-performance native path without removing trusted script workflows users may prefer.
 
 ## In Scope
 - Add native backend interfaces and platform adapters.
 - Implement package manager execution for brew, apt, and winget paths.
 - Implement native verified direct-download update flows with checksum and signature policies.
 - Preserve service update safety gates and major-version policy checks.
-- Keep shell fallback available behind a backend selection switch.
+- Keep shell backend available behind a backend selection switch.
 
 ## Out Of Scope
 - Deleting shell runtime scripts.
-- Removing fallback execution path.
+- Forcing all users to the native backend.
 
 ## Implementation Tasks
 1. Backend architecture
@@ -39,7 +39,7 @@ This phase removes the main runtime dependency on shell internals and gives full
 - Preserve pin handling and skip semantics.
 
 5. Fallback path
-- Keep shell backend selectable for safe rollout and incident mitigation.
+- Keep shell backend selectable for safe rollout, incident mitigation, and long-term co-live support.
 
 6. Test matrix
 - Add integration tests per platform and manager type.
@@ -59,7 +59,7 @@ This phase removes the main runtime dependency on shell internals and gives full
 ## Exit Criteria
 - Native backend passes defined integration matrix.
 - Safety and verification policies are equivalent to existing behavior.
-- Shell fallback is still available and validated.
+- Shell backend remains fully available, validated, and documented as a supported runtime mode.
 
 ## Deliverables
 - Native platform backend packages.

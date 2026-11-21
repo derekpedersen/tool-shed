@@ -123,8 +123,8 @@ test: test-updates
 
 toolshed-build:
 	@mkdir -p $(TOOLSHED_RELEASE_DIR)
-	@go test ./cmd/tool-shed
-	@go build -o $(TOOLSHED_RELEASE_DIR)/tool-shed-local ./cmd/tool-shed
+	@go test ./.cmd/tool-shed ./.cmd/internal/manifest ./.cmd/internal/resolver ./.cmd/internal/state
+	@go build -o $(TOOLSHED_RELEASE_DIR)/tool-shed-local ./.cmd/tool-shed
 
 toolshed-release:
 	@mkdir -p $(TOOLSHED_RELEASE_DIR)
@@ -141,7 +141,7 @@ toolshed-release:
 		fi; \
 		if [[ "$$os" == "windows" ]]; then out="$$out.exe"; fi; \
 		echo "Building $$out"; \
-		eval "$$build_env go build -o \"$$out\" ./cmd/tool-shed"; \
+		eval "$$build_env go build -o \"$$out\" ./.cmd/tool-shed"; \
 	done
 	@files=$$(find "$(TOOLSHED_RELEASE_DIR)" -maxdepth 1 -type f -name 'tool-shed-*' | sort); \
 	if [[ -z "$$files" ]]; then \

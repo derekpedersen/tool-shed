@@ -74,28 +74,37 @@ curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/.tools
 
 Phase 1 adds cross-compiled binaries under `.bin/tool-shed` so they can be committed and downloaded with `curl` from GitHub raw content.
 
+Runtime mode selection:
+
+- Default runtime mode is `shell`.
+- Use `--runtime go` to enable the Go-owned deterministic path.
+- Use `--runtime shell` (or `TOOL_SHED_RUNTIME=shell`) to force script execution.
+
+Examples:
+
+```bash
+./tool-shed --runtime go install cloud --dry-run
+TOOL_SHED_RUNTIME=shell ./tool-shed install cloud --dry-run
+```
+
 Supported release targets currently include:
 
 - macOS: `darwin-amd64`, `darwin-arm64`
 - Linux: `linux-amd64`, `linux-arm64`, `linux-386`, `linux-armv5`, `linux-armv6`, `linux-armv7`, `linux-riscv64`
 - Windows: `windows-amd64.exe`, `windows-arm64.exe`, `windows-386.exe`
 
-Raspberry Pi mapping:
+Board and legacy system mapping:
 
-- Pi OS 32-bit on older boards: `linux-armv6` or `linux-armv7`
-- Pi OS 64-bit on newer boards: `linux-arm64`
-
-BeagleBoard mapping:
-
-- BeagleBone Black and similar ARMv7 boards: `linux-armv7`
-- 64-bit ARM Beagle platforms: `linux-arm64`
-- BeagleV and other RISC-V platforms: `linux-riscv64`
-
-Legacy 32-bit mapping:
-
-- x86 32-bit Linux: `linux-386`
-- x86 32-bit Windows: `windows-386.exe`
-- older 32-bit ARM Linux: `linux-armv5`, `linux-armv6`, or `linux-armv7`
+| Platform or board | Typical OS / CPU | Binary |
+| --- | --- | --- |
+| Raspberry Pi (older 32-bit) | Raspberry Pi OS 32-bit, ARM | `linux-armv6` or `linux-armv7` |
+| Raspberry Pi (newer 64-bit) | Raspberry Pi OS 64-bit, ARM64 | `linux-arm64` |
+| BeagleBone Black and similar | Linux, ARMv7 | `linux-armv7` |
+| 64-bit ARM Beagle platforms | Linux, ARM64 | `linux-arm64` |
+| BeagleV and other RISC-V boards | Linux, RISC-V 64 | `linux-riscv64` |
+| Legacy Linux 32-bit x86 | Linux, x86 32-bit | `linux-386` |
+| Legacy Windows 32-bit x86 | Windows, x86 32-bit | `windows-386.exe` |
+| Legacy Linux 32-bit ARM | Linux, ARM | `linux-armv5`, `linux-armv6`, or `linux-armv7` |
 
 Arduino note:
 
