@@ -6,12 +6,14 @@ The repo is split into three parts: helper scripts, installer/runtime logic, and
 
 ## Quick start
 
+Root scripts are self-contained entrypoints. You can run any root script with a single `curl | bash` command without cloning the full repository first. If local runtime files are missing, the script bootstraps what it needs from GitHub at runtime.
+
 ### Run the root installer prompt
 
 This is the interactive root installer. It asks whether to install bash helpers and whether to run the tools installer. Both default to yes, and the tools install defaults to the `full` bundle.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/install.sh | bash -s -- full
 ```
 
 PowerShell / Windows users can also run the bundled wrapper:
@@ -23,7 +25,7 @@ pwsh ./.tools/install.ps1 full
 ### List installed tools and versions
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s --
 ```
 
 ### Preview a bundle removal
@@ -41,10 +43,17 @@ curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update
 ### Apply managed updates
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s --
 ```
 
 > Review scripts before piping remote code into Bash. Uninstall requires an explicit tool or bundle target, and updates should be previewed before real changes.
+
+Remote runtime selection also works from one-liners:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- --runtime go --backend native cloud
+curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh | bash -s -- --runtime shell --dry-run cloud
+```
 
 ### From a repo checkout
 
@@ -67,6 +76,25 @@ bash ./uninstall.sh --runtime go --backend native cloud --dry-run
 ```
 
 If a Go binary is not available locally, wrappers automatically fall back to shell mode.
+
+When `--runtime go` is selected, root wrappers auto-detect platform and choose the matching prebuilt binary name:
+
+| Detected OS (`uname -s`) | Detected CPU (`uname -m`) | Selected artifact suffix |
+| --- | --- | --- |
+| `Darwin` | `x86_64`, `amd64` | `darwin-amd64` |
+| `Darwin` | `arm64`, `aarch64` | `darwin-arm64` |
+| `Linux` | `x86_64`, `amd64` | `linux-amd64` |
+| `Linux` | `arm64`, `aarch64` | `linux-arm64` |
+| `Linux` | `armv7l`, `armv7` | `linux-armv7` |
+| `Linux` | `armv6l`, `armv6` | `linux-armv6` |
+| `Linux` | `armv5l`, `armv5` | `linux-armv5` |
+| `Linux` | `i386`, `i686` | `linux-386` |
+| `Linux` | `riscv64` | `linux-riscv64` |
+| `MINGW*`, `MSYS*`, `CYGWIN*` | `x86_64`, `amd64` | `windows-amd64.exe` |
+| `MINGW*`, `MSYS*`, `CYGWIN*` | `arm64`, `aarch64` | `windows-arm64.exe` |
+| `MINGW*`, `MSYS*`, `CYGWIN*` | `i386`, `i686` | `windows-386.exe` |
+
+Downloaded wrapper binaries are cached under `$HOME/.tool-shed/bin` by default.
 
 Shell-only wrappers now live under `.scripts/`:
 

@@ -10,29 +10,85 @@
 
 set -euo pipefail
 
-bootstrap_from_github() {
-  if ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
-    echo "curl and tar are required to bootstrap tool-shed." >&2
+bootstrap_shell_runtime() {
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to bootstrap tool-shed shell runtime." >&2
     return 1
   fi
 
   local repo="${TOOL_SHED_REPO:-derekpedersen/tool-shed}"
   local ref="${TOOL_SHED_REF:-main}"
-  local extracted_dir rc tmpdir
-  tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' EXIT
+  local raw_base="https://raw.githubusercontent.com/$repo/$ref"
+  local tmpdir rc
 
-  curl -fsSL "https://codeload.github.com/$repo/tar.gz/refs/heads/$ref" -o "$tmpdir/tool-shed.tar.gz"
-  tar -xzf "$tmpdir/tool-shed.tar.gz" -C "$tmpdir"
-  extracted_dir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
-  if [[ -z "$extracted_dir" || ! -f "$extracted_dir/uninstall.sh" ]]; then
-    echo "Bootstrap failed: uninstall.sh not found in downloaded archive." >&2
+  tmpdir="$(mktemp -d)"
+  mkdir -p "$tmpdir/.scripts"
+
+  echo "Fetching shell runtime for uninstall from github.com/$repo ($ref)..." >&2
+  curl -fsSL "$raw_base/.scripts/common.sh" -o "$tmpdir/.scripts/common.sh"
+  curl -fsSL "$raw_base/.scripts/uninstall.sh" -o "$tmpdir/.scripts/uninstall.sh"
+
+  rc=0
+  TOOL_SHED_REF="$ref" TOOL_SHED_REPO="$repo" bash "$tmpdir/.scripts/uninstall.sh" "$@" || rc=$?
+  rm -rf "$tmpdir"
+  return "$rc"
+}
+
+resolve_platform_target() {
+  local os arch
+  os="$(uname -s)"
+  arch="$(uname -m)"
+
+  case "$os" in
+    Darwin) os="darwin" ;;
+    Linux) os="linux" ;;
+    MINGW*|MSYS*|CYGWIN*) os="windows" ;;
+    *) return 1 ;;
+  esac
+
+  case "$arch" in
+    x86_64|amd64) arch="amd64" ;;
+    arm64|aarch64) arch="arm64" ;;
+    armv5l|armv5) arch="armv5" ;;
+    armv7l|armv7) arch="armv7" ;;
+    armv6l|armv6) arch="armv6" ;;
+    i386|i686) arch="386" ;;
+    riscv64) arch="riscv64" ;;
+    *) return 1 ;;
+  esac
+
+  printf '%s\n' "$os-$arch"
+}
+
+download_runtime_binary() {
+  if [[ "${TOOL_SHED_AUTO_DOWNLOAD_BINARY:-1}" != "1" ]]; then
+    return 1
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
     return 1
   fi
 
-  rc=0
-  TOOL_SHED_BOOTSTRAPPED=1 TOOL_SHED_REF="$ref" TOOL_SHED_REPO="$repo" bash "$extracted_dir/uninstall.sh" "$@" || rc=$?
-  return "$rc"
+  local target repo ref base name cache_dir cache_path
+  target="$(resolve_platform_target)" || return 1
+  repo="${TOOL_SHED_REPO:-derekpedersen/tool-shed}"
+  ref="${TOOL_SHED_REF:-main}"
+  base="https://raw.githubusercontent.com/$repo/$ref/.bin/tool-shed"
+  name="tool-shed-$target"
+  if [[ "$target" == windows-* ]]; then
+    name="$name.exe"
+  fi
+
+  cache_dir="${TOOL_SHED_CACHE_DIR:-$HOME/.tool-shed/bin}"
+  cache_path="$cache_dir/$name"
+
+  mkdir -p "$cache_dir"
+  if [[ ! -x "$cache_path" ]]; then
+    echo "Downloading tool-shed binary for $target from github.com/$repo ($ref)..." >&2
+    curl -fsSL "$base/$name" -o "$cache_path" || return 1
+    chmod +x "$cache_path" || return 1
+  fi
+
+  printf '%s\n' "$cache_path"
 }
 
 choose_runtime() {
@@ -73,6 +129,10 @@ resolve_runtime_binary() {
     command -v tool-shed
     return 0
   fi
+  if bin_path="$(download_runtime_binary)"; then
+    printf '%s\n' "$bin_path"
+    return 0
+  fi
   return 1
 }
 
@@ -81,11 +141,7 @@ SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 SHELL_SCRIPT="$SCRIPT_DIR/.scripts/uninstall.sh"
 
 if [[ ! -f "$SHELL_SCRIPT" ]]; then
-  if [[ "${TOOL_SHED_BOOTSTRAPPED:-0}" == "1" ]]; then
-    echo "Required runtime selector files are missing after bootstrap." >&2
-    exit 1
-  fi
-  bootstrap_from_github "$@"
+  bootstrap_shell_runtime "$@"
   exit $?
 fi
 
