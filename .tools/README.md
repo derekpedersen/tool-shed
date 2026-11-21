@@ -4,6 +4,12 @@ Installer/runtime layer for the repo's bundle-based tool installation flow.
 
 This folder contains the controller and platform logic that resolves bundles, dispatches module installers, and keeps the cross-platform behavior in one place. Individual tool packages continue to live as repo-root directories such as [docker](docker), [kubectl](kubectl), [aws](aws), [gcloud](gcloud), and [git](git).
 
+Root script layout:
+
+- Root `install.sh`, `list.sh`, `update.sh`, and `uninstall.sh` are runtime selectors.
+- Shell-only root behavior now lives under `.scripts/`.
+- Runtime selectors dispatch to Go or shell paths and preserve fallback safety semantics.
+
 Canonical bundle names are defined in `common.sh` and intentionally limited to:
 
 - `full` (default)
@@ -39,6 +45,7 @@ the `.services` Compose stack.
 ```bash
 bash update.sh --dry-run            # Preview all recorded, installed tools
 bash update.sh                      # Update those tools
+bash .scripts/update.sh --dry-run   # Force shell-only update wrapper
 bash .tools/update.sh cloud         # Only installed, managed cloud bundle members
 bash .tools/update.sh git kubectl    # Selected tools, with aliases supported
 bash jq/update.sh --dry-run         # Individual module, same options and guards
@@ -52,6 +59,7 @@ compatibility. The standalone command does not load the update runtime:
 bash ./list.sh
 bash ./list.sh cloud
 bash ./list.sh git jq
+bash ./.scripts/list.sh cloud
 curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh | bash -s -- cloud
 ```
 
@@ -136,6 +144,13 @@ bundle, so newly added bundle members are never installed by an update.
 	package profiles. This is a separate opt-in: those packages can have breaking
 	changes. Python uses only the existing managed virtual environment; it never
 	writes into system Python. CRAN and project dependencies are not updated.
+- Install, update, and uninstall now show two progress rows: overall target
+	completion and current-tool sub-step completion. In non-interactive output,
+	the same information is emitted as textual snapshots at each step.
+- `--verbose` prints module command output while a command runs; default mode keeps
+	module output compact and only surfaces details automatically when a module fails.
+- `TOOL_SHED_PROGRESS=off` disables progress rendering, `on` forces it, and `auto`
+	(default) chooses dynamic output for TTYs and textual snapshots for non-TTY output.
 - Adoption defaults to the `full` developer profile. Use aliases such as
 	`--adopt python-ai`, `--adopt go-core`, or `--adopt node-core` to select the
 	original profile. Adopting `ai` selects the corresponding AI profiles.

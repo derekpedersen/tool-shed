@@ -45,7 +45,7 @@ esac
 
 usage() {
   cat <<'EOF'
-Usage: bash ./.tools/uninstall.sh [full|cloud|services|ai|software-developer|data-science|<tool> [tool ...]] [--dry-run]
+Usage: bash ./.tools/uninstall.sh [full|cloud|services|ai|software-developer|data-science|<tool> [tool ...]] [--dry-run] [--verbose]
 
 Bundle targets:
   full  = base tools + cloud CLIs + data/service tools
@@ -74,22 +74,29 @@ Examples:
   bash ./.tools/uninstall.sh full
   bash ./.tools/uninstall.sh services
   bash ./.tools/uninstall.sh kubectl docker --dry-run
+  bash ./.tools/uninstall.sh kubectl --dry-run --verbose
   bash ./.tools/uninstall.sh ai
 EOF
 }
 
 DRY_RUN=false
+VERBOSE=false
 args=()
 for arg in "$@"; do
   case "$arg" in
     --dry-run|-n)
       DRY_RUN=true
       ;;
+    --verbose|-v)
+      VERBOSE=true
+      ;;
     *)
       args+=("$arg")
       ;;
   esac
 done
+
+tool_shed_set_verbose "$VERBOSE"
 
 if [[ ${#args[@]} -eq 0 ]]; then
   args=("full")
@@ -748,19 +755,28 @@ if [[ "$DRY_RUN" == true ]]; then
 fi
 
 failures=0
+tool_shed_progress_init "uninstall" "${#TARGET_LIST[@]}"
 for tool in "${TARGET_LIST[@]}"; do
+  tool_shed_progress_start_tool "$tool" 4
+  tool_shed_progress_tick_tool "dispatch"
   module_uninstaller="$REPO_ROOT/$tool/uninstall.sh"
   if [[ ! -f "$module_uninstaller" ]]; then
     echo "Missing module uninstaller: $module_uninstaller"
     failures=$((failures + 1))
+    tool_shed_progress_finish_tool
     continue
   fi
 
-  if ! DRY_RUN="$DRY_RUN" TOOL_SHED_OS_OVERRIDE="${TOOL_SHED_OS_OVERRIDE:-}" bash "$module_uninstaller"; then
+  if ! DRY_RUN="$DRY_RUN" TOOL_SHED_OS_OVERRIDE="${TOOL_SHED_OS_OVERRIDE:-}" TOOL_SHED_VERBOSE="${TOOL_SHED_VERBOSE:-0}" TOOL_SHED_PROGRESS="${TOOL_SHED_PROGRESS:-auto}" tool_shed_run_with_output_mode bash "$module_uninstaller"; then
     echo "Module uninstall failed: $tool"
     failures=$((failures + 1))
   fi
+  tool_shed_progress_tick_tool "remove"
+  tool_shed_progress_tick_tool "complete"
+  tool_shed_progress_finish_tool
 done
+
+tool_shed_progress_finish
 
 if (( failures > 0 )); then
   echo "Uninstall finished with $failures failure(s)."

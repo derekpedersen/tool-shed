@@ -1,9 +1,11 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
-.PHONY: build test test-updates all
+.PHONY: build test test-updates toolshed-build toolshed-runtime-test toolshed-release all
 
 BUNDLES := full cloud services ai software-developer data-science
+TOOLSHED_RELEASE_DIR := .bin/tool-shed
+TOOLSHED_RELEASE_TARGETS := darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 linux/386 linux/arm/v5 linux/arm/v6 linux/arm/v7 linux/riscv64 windows/amd64 windows/arm64 windows/386
 
 all: build test
 
@@ -118,3 +120,56 @@ test: test-updates
 		bash ./.tools/uninstall.sh jdk --dry-run; \
 		echo "Testing Java macOS uninstall mapping"; \
 		TOOL_SHED_OS_OVERRIDE=Darwin TOOLS_UNINSTALL_MODULE_INTERNAL=1 bash ./.tools/uninstall.sh java --dry-run'
+
+toolshed-build:
+	@mkdir -p $(TOOLSHED_RELEASE_DIR)
+	@go test ./.cmd/tool-shed ./.cmd/internal/catalog ./.cmd/internal/manifest ./.cmd/internal/nativebackend ./.cmd/internal/resolver ./.cmd/internal/state
+	@go build -o $(TOOLSHED_RELEASE_DIR)/tool-shed-local ./.cmd/tool-shed
+
+toolshed-runtime-test: toolshed-build
+	@bash -lc 'set -euo pipefail; \
+		echo "Validating root wrappers in shell runtime mode"; \
+		bash ./list.sh --runtime shell > /dev/null; \
+		bash ./update.sh --runtime shell --help > /dev/null; \
+		bash ./uninstall.sh --runtime shell --help > /dev/null; \
+		echo "Validating root wrappers in go/native runtime mode"; \
+		TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash ./list.sh --runtime go --backend native gh > /dev/null; \
+		TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash ./update.sh --runtime go --backend native --dry-run gh > /dev/null; \
+		TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash ./uninstall.sh --runtime go --backend native gh --dry-run > /dev/null; \
+		echo "Validating go runtime fallback to shell wrappers"; \
+		mv ./.bin/tool-shed/tool-shed-local ./.bin/tool-shed/tool-shed-local.bak; \
+		trap "mv ./.bin/tool-shed/tool-shed-local.bak ./.bin/tool-shed/tool-shed-local" EXIT; \
+		fallback_output=$$(TOOL_SHED_BINARY=/definitely/missing PATH="/usr/bin:/bin" /bin/bash ./list.sh --runtime go --backend native gh 2>&1 || true); \
+		[[ "$$fallback_output" == *"falling back to shell runtime"* ]]; \
+		mv ./.bin/tool-shed/tool-shed-local.bak ./.bin/tool-shed/tool-shed-local; \
+		trap - EXIT; \
+		echo "Root wrapper runtime tests passed"'
+
+toolshed-release:
+	@mkdir -p $(TOOLSHED_RELEASE_DIR)
+	@for target in $(TOOLSHED_RELEASE_TARGETS); do \
+		IFS='/' read -r os arch variant <<< "$$target"; \
+		out="$(TOOLSHED_RELEASE_DIR)/tool-shed-$$os-$$arch"; \
+		build_env="GOOS=$$os GOARCH=$$arch"; \
+		if [[ -n "$${variant:-}" ]]; then \
+			if [[ "$$arch" == "arm" ]]; then \
+				variant="$${variant#v}"; \
+				out="$(TOOLSHED_RELEASE_DIR)/tool-shed-$$os-$$arch""v$$variant"; \
+				build_env="$$build_env GOARM=$$variant"; \
+			fi; \
+		fi; \
+		if [[ "$$os" == "windows" ]]; then out="$$out.exe"; fi; \
+		echo "Building $$out"; \
+		eval "$$build_env go build -o \"$$out\" ./.cmd/tool-shed"; \
+	done
+	@files=$$(find "$(TOOLSHED_RELEASE_DIR)" -maxdepth 1 -type f -name 'tool-shed-*' | sort); \
+	if [[ -z "$$files" ]]; then \
+		echo "No release binaries were generated." >&2; \
+		exit 1; \
+	fi; \
+	if command -v sha256sum >/dev/null 2>&1; then \
+		sha256sum $$files > "$(TOOLSHED_RELEASE_DIR)/SHA256SUMS"; \
+	else \
+		shasum -a 256 $$files > "$(TOOLSHED_RELEASE_DIR)/SHA256SUMS"; \
+	fi; \
+	echo "Wrote checksums to $(TOOLSHED_RELEASE_DIR)/SHA256SUMS"
