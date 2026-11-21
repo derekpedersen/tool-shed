@@ -9,6 +9,58 @@ update_mac() {
   esac
 }
 
+brew_formula_has_bottle() {
+  local formula_name="$1"
+  local json
+
+  if ! command -v brew >/dev/null 2>&1; then
+    return 1
+  fi
+
+  json="$(brew info --json=v2 --formula "$formula_name" 2>/dev/null || true)"
+  [[ -n "$json" ]] || return 1
+
+  python3 - "$json" <<'PY'
+import json, sys
+payload = json.loads(sys.argv[1])
+for item in payload.get("formulae", []):
+    if not isinstance(item, dict):
+        continue
+    bottle = item.get("bottle")
+    stable = bottle.get("stable") if isinstance(bottle, dict) else None
+    if bottle is None or stable is None or not isinstance(stable, dict):
+        raise SystemExit(1)
+    if stable.get("files") is None:
+        raise SystemExit(1)
+    raise SystemExit(0)
+raise SystemExit(1)
+PY
+}
+
+prompt_for_source_build() {
+  local formula_name="$1"
+  local answer=""
+
+  echo "Homebrew formula '$formula_name' may require a source build on this macOS version. That can take a long time."
+
+  if [[ "${TOOL_SHED_NO_PROMPT:-0}" == "1" ]]; then
+    echo "Skipping '$formula_name' because source builds are disabled in non-interactive mode."
+    return 1
+  fi
+
+  if [[ ! -t 0 && "${TOOL_SHED_FORCE_PROMPT:-0}" != "1" ]]; then
+    echo "Skipping '$formula_name' because interactive confirmation is unavailable."
+    return 1
+  fi
+
+  read -r -p "Build from source and continue? [y/N]: " answer
+  answer="${answer:-N}"
+  case "$answer" in
+    y|Y|yes|YES) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 install_brew_formula_if_missing() {
   local formula_name="$1"
   local binary_name="${2:-$formula_name}"
@@ -21,6 +73,13 @@ install_brew_formula_if_missing() {
   if command -v "$binary_name" >/dev/null 2>&1; then
     BREW_SKIPPED_COUNT=$((BREW_SKIPPED_COUNT + 1))
     return 0
+  fi
+
+  if ! brew_formula_has_bottle "$formula_name"; then
+    if ! prompt_for_source_build "$formula_name"; then
+      echo "Skipping '$formula_name' to avoid a source build."
+      return 0
+    fi
   fi
 
   HOMEBREW_NO_AUTO_UPDATE=1 brew install -v "$formula_name"
@@ -47,6 +106,8 @@ install_mac() {
   BREW_SKIPPED_COUNT=0
   local pkg
   local requires_brew=false
+  local -a unique_pkgs=()
+  local -a seen_pkgs=()
 
   for pkg in "$@"; do
     case "$pkg" in
@@ -56,6 +117,15 @@ install_mac() {
         requires_brew=true
         ;;
     esac
+
+    local already_seen=false
+    for existing in "${seen_pkgs[@]}"; do
+      [[ "$existing" == "$pkg" ]] && already_seen=true && break
+    done
+    if [[ "$already_seen" != true ]]; then
+      seen_pkgs+=("$pkg")
+      unique_pkgs+=("$pkg")
+    fi
   done
 
   echo "Detected macOS"
@@ -70,7 +140,7 @@ install_mac() {
     fi
   fi
 
-  for pkg in "$@"; do
+  for pkg in "${unique_pkgs[@]}"; do
     case "$pkg" in
       git)
         install_brew_formula_if_missing "git"

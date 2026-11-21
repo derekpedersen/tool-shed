@@ -1,0 +1,12 @@
+a076a8ed0a8bde150a4fcc2a626a0b2401fa249a866ad0a661f58c8200335766  .bin/tool-shed/tool-shed-darwin-amd64
+dc79caccc986bb1a32990ec717e42dfdd7390c7250e47234d80e34c752d92f68  .bin/tool-shed/tool-shed-darwin-arm64
+93b25f08db2fe4383a67c390c7bf8a4289dd0c44080aefbbbd531b17854ec312  .bin/tool-shed/tool-shed-linux-386
+476d8a4bc88fd7479ec07cb13d22c3d6ff83ac655042ff808fd1410c31f3ccd2  .bin/tool-shed/tool-shed-linux-amd64
+588b6721e786ef5920cd1a9cee3e829cee07f1c56cf49709fa04f94dae0f6d88  .bin/tool-shed/tool-shed-linux-arm64
+451fd97beb37b582bb8d964b025ac941746aef36d2d4658925c6a1261b815d5a  .bin/tool-shed/tool-shed-linux-armv5
+a9b1c9ed743db42dcddaa641df9a29a5bac19a08017b41dd9feb0a0dfd9f276a  .bin/tool-shed/tool-shed-linux-armv6
+e9e6c86654bf1e5fb3b90a0e00b3e3c6c738e9576526cbe9b201ddd718afeb70  .bin/tool-shed/tool-shed-linux-armv7
+a6577b4fc43fd2afd1b4d6f119daba652ea3b72294417e6c0535b20c390bf7ca  .bin/tool-shed/tool-shed-linux-riscv64
+8400c7867e73bcd1b871ae03752679de1466fe824b63bae73aef56301b48e6be  .bin/tool-shed/tool-shed-windows-386.exe
+66e131a55ad764ade789c16181d8b894fa6f57fb64f27ea358578bdc29f58455  .bin/tool-shed/tool-shed-windows-amd64.exe
+f691893b07dbb7e1532bcc7eacc644d56626c75b03bbed07f8f7b02679cf1d98  .bin/tool-shed/tool-shed-windows-arm64.exe

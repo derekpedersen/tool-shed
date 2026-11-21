@@ -153,6 +153,7 @@ update_prepare_packages() {
 module_update() {
   local tool executable current_path manager package source found=false
   tool="$(canonical_tool_name "$1")"
+  tool_shed_progress_tick_tool "validate"
   case "$tool" in
     identity|git-config|git-signing|ssh-key|cloud)
       update_skip "$tool has no updatable installation; configuration and credentials are unchanged."
@@ -212,10 +213,13 @@ module_update() {
       ;;
     *) update_skip "Unknown update source for $tool: $STATE_MANAGER"; return 3 ;;
   esac
+  tool_shed_progress_tick_tool "apply"
   update_developer_packages "$tool" || return 1
+  tool_shed_progress_tick_tool "packages"
   if [[ "${DRY_RUN:-false}" != true ]]; then
     PYTHON_PACKAGE_PROFILE="$STATE_PROFILE" GO_PACKAGE_PROFILE="$STATE_PROFILE" NODE_PACKAGE_PROFILE="$STATE_PROFILE" tool_state_record "$tool" || return 1
   fi
+  tool_shed_progress_tick_tool "record"
 }
 
 update_native() {
