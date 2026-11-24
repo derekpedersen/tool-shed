@@ -9,6 +9,7 @@ Root script layout:
 - Root `install.sh`, `list.sh`, `update.sh`, and `uninstall.sh` are runtime selectors.
 - Shell-only root behavior now lives under `.scripts/`.
 - Runtime selectors dispatch to Go or shell paths and preserve fallback safety semantics.
+- Interactive root-wrapper runs pick runtime first, including curl-bootstrap flows when local `.scripts/` files are absent.
 - When `--runtime go` is selected, wrappers try local binaries first, then download the matching prebuilt binary for the detected OS/arch, and only then fall back to shell mode.
 
 Canonical bundle names are defined in `common.sh` and intentionally limited to:
@@ -87,9 +88,10 @@ pwsh ./.tools/update.ps1 cloud
 pwsh ./.tools/update.ps1 jq
 ```
 
-The root `uninstall.sh` is the explicit-target counterpart for removal. It refuses
-to run without a tool or bundle target, and supports `--dry-run`; preview removals
-before running a command without that flag.
+The root `uninstall.sh` prompts for uninstall targets from installed tools when run
+interactively without explicit targets. Non-interactive runs still require explicit
+tool or bundle targets and support `--dry-run`; preview removals before running a
+command without that flag.
 
 There is an `update.sh` in every installable tool module, including explicit
 not-applicable results for identity, Git configuration/signing, and SSH keys.

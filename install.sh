@@ -5,7 +5,8 @@
 # ============================================================
 #
 # Purpose:
-#   Prompt for runtime selection and dispatch install to shell or Go.
+#   Resolve runtime selection first, then dispatch install to shell or Go.
+#   This keeps local and curl-bootstrap runs behaviorally aligned.
 # ============================================================
 
 set -euo pipefail
@@ -143,11 +144,6 @@ SCRIPT_PATH="${BASH_SOURCE:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 SHELL_SCRIPT="$SCRIPT_DIR/.scripts/install.sh"
 
-if [[ ! -f "$SHELL_SCRIPT" ]]; then
-  bootstrap_shell_runtime "$@"
-  exit $?
-fi
-
 if [[ -r /dev/tty && -w /dev/tty ]]; then
   exec 3<>/dev/tty
 fi
@@ -192,6 +188,12 @@ if [[ "$runtime" == "go" ]]; then
     exec "$bin" --runtime go --backend "$backend" install "${passthrough[@]}"
   fi
   echo "Go runtime requested but no tool-shed binary found; falling back to shell runtime." >&2
+fi
+
+# Pick runtime first so bootstrap runs follow the same runtime decision path.
+if [[ ! -f "$SHELL_SCRIPT" ]]; then
+  bootstrap_shell_runtime "${passthrough[@]}"
+  exit $?
 fi
 
 exec bash "$SHELL_SCRIPT" "${passthrough[@]}"

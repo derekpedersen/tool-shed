@@ -136,10 +136,24 @@ toolshed-runtime-test: toolshed-build
 		TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash ./list.sh --runtime go --backend native gh > /dev/null; \
 		TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash ./update.sh --runtime go --backend native --dry-run gh > /dev/null; \
 		TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash ./uninstall.sh --runtime go --backend native gh --dry-run > /dev/null; \
+		echo "Validating bootstrap-path wrappers still honor --runtime go"; \
+		tmp_root=$$(mktemp -d); \
+		trap "rm -rf $$tmp_root" EXIT; \
+		cp ./list.sh "$$tmp_root/list.sh"; \
+		cp ./update.sh "$$tmp_root/update.sh"; \
+		cp ./uninstall.sh "$$tmp_root/uninstall.sh"; \
+		bootstrap_list_output=$$(TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash "$$tmp_root/list.sh" --runtime go --backend native gh 2>&1); \
+		[[ "$$bootstrap_list_output" != *"Fetching shell runtime"* ]]; \
+		bootstrap_update_output=$$(TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash "$$tmp_root/update.sh" --runtime go --backend native --dry-run gh 2>&1); \
+		[[ "$$bootstrap_update_output" != *"Fetching shell runtime"* ]]; \
+		bootstrap_uninstall_output=$$(TOOL_SHED_BINARY=./.bin/tool-shed/tool-shed-local bash "$$tmp_root/uninstall.sh" --runtime go --backend native gh --dry-run 2>&1); \
+		[[ "$$bootstrap_uninstall_output" != *"Fetching shell runtime"* ]]; \
+		rm -rf "$$tmp_root"; \
+		trap - EXIT; \
 		echo "Validating go runtime fallback to shell wrappers"; \
 		mv ./.bin/tool-shed/tool-shed-local ./.bin/tool-shed/tool-shed-local.bak; \
 		trap "mv ./.bin/tool-shed/tool-shed-local.bak ./.bin/tool-shed/tool-shed-local" EXIT; \
-		fallback_output=$$(TOOL_SHED_BINARY=/definitely/missing PATH="/usr/bin:/bin" /bin/bash ./list.sh --runtime go --backend native gh 2>&1 || true); \
+		fallback_output=$$(TOOL_SHED_BINARY=/definitely/missing TOOL_SHED_AUTO_DOWNLOAD_BINARY=0 PATH="/usr/bin:/bin" /bin/bash ./list.sh --runtime go --backend native gh 2>&1 || true); \
 		[[ "$$fallback_output" == *"falling back to shell runtime"* ]]; \
 		mv ./.bin/tool-shed/tool-shed-local.bak ./.bin/tool-shed/tool-shed-local; \
 		trap - EXIT; \
