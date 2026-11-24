@@ -129,7 +129,7 @@ toolshed-build:
 toolshed-runtime-test: toolshed-build
 	@bash -lc 'set -euo pipefail; \
 		echo "Validating root wrappers in shell runtime mode"; \
-		bash ./list.sh --runtime shell > /dev/null; \
+		bash ./list.sh --runtime shell --help > /dev/null; \
 		bash ./update.sh --runtime shell --help > /dev/null; \
 		bash ./uninstall.sh --runtime shell --help > /dev/null; \
 		echo "Validating root wrappers in go/native runtime mode"; \
@@ -157,6 +157,11 @@ toolshed-runtime-test: toolshed-build
 		[[ "$$fallback_output" == *"falling back to shell runtime"* ]]; \
 		mv ./.bin/tool-shed/tool-shed-local.bak ./.bin/tool-shed/tool-shed-local; \
 		trap - EXIT; \
+		echo "Validating go runtime outside checkout falls back to shell bootstrap"; \
+		repo_root="$$PWD"; \
+		outside_output=$$(cd /tmp && TOOL_SHED_NO_PROMPT=1 TOOL_SHED_BINARY="$$repo_root/.bin/tool-shed/tool-shed-local" bash "$$repo_root/list.sh" --runtime go gh 2>&1); \
+		[[ "$$outside_output" == *"No local tool-shed checkout found; bootstrapping shell runtime from remote scripts."* ]]; \
+		[[ "$$outside_output" != *"could not locate repository root"* ]]; \
 		echo "Root wrapper runtime tests passed"'
 
 toolshed-release:

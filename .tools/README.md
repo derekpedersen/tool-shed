@@ -12,6 +12,7 @@ Root script layout:
 - Interactive root-wrapper runs pick runtime first, including curl-bootstrap flows when local `.scripts/` files are absent.
 - When `--runtime go` is selected, wrappers try local binaries first, then download the matching prebuilt binary for the detected OS/arch, and only then fall back to shell mode.
 - If a cached Go binary is stale and lacks modern global runtime flags, wrappers force-refresh that cached binary once before invoking legacy compatibility fallback.
+- Maintainers: after changing `.cmd/tool-shed`, run `make toolshed-release` and commit `.bin/tool-shed/*` (including `SHA256SUMS`) before merging.
 
 Canonical bundle names are defined in `common.sh` and intentionally limited to:
 

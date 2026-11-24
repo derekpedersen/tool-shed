@@ -58,6 +58,18 @@ chmod +x ./tool-shed
 
 Release verification uses SHA256 checksums in `.bin/tool-shed/SHA256SUMS`.
 
+### Maintainer release rule
+
+When changing Go runtime behavior in `.cmd/tool-shed` (or other Go CLI code), regenerate and commit prebuilt artifacts before merging so curl/bootstrap users pick up the same behavior:
+
+```bash
+make toolshed-release
+git add .bin/tool-shed
+git commit -m "release: refresh tool-shed binaries"
+```
+
+This updates all OS/arch binaries and rewrites `.bin/tool-shed/SHA256SUMS`.
+
 ## What is in the shed
 
 | Domain | Location | Purpose |

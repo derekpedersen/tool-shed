@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -156,11 +158,14 @@ func run(args []string) error {
 	}
 
 	repoRoot, err := findRepoRoot(cwd)
-	if err != nil {
-		return err
-	}
+	hasRepoRoot := err == nil
 
 	if parsed.runtime == "go" {
+		if !hasRepoRoot {
+			fmt.Fprintln(os.Stderr, "No local tool-shed checkout found; bootstrapping shell runtime from remote scripts.")
+			return runRemoteShellCommand(parsed.command, parsed.passthrough)
+		}
+
 		if parsed.backend == "native" {
 			if err := runNativeBackend(repoRoot, parsed.command, parsed.passthrough); err != nil {
 				if errors.Is(err, nativebackend.ErrNoSupportedTools) {
@@ -186,7 +191,77 @@ func run(args []string) error {
 		}
 	}
 
+	if !hasRepoRoot {
+		return runRemoteShellCommand(parsed.command, parsed.passthrough)
+	}
+
 	return runShellCommand(repoRoot, parsed.command, parsed.passthrough)
+}
+
+func runRemoteShellCommand(command string, passthrough []string) error {
+	scriptName, ok := commandScripts[command]
+	if !ok {
+		return fmt.Errorf("unknown command: %s", command)
+	}
+
+	repo := os.Getenv("TOOL_SHED_REPO")
+	if repo == "" {
+		repo = "derekpedersen/tool-shed"
+	}
+	ref := os.Getenv("TOOL_SHED_REF")
+	if ref == "" {
+		ref = "main"
+	}
+
+	tmpDir, err := os.MkdirTemp("", "tool-shed-remote-*")
+	if err != nil {
+		return fmt.Errorf("create temp dir for remote runtime: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	scriptsDir := filepath.Join(tmpDir, ".scripts")
+	if err := os.MkdirAll(scriptsDir, 0o755); err != nil {
+		return fmt.Errorf("create scripts temp dir: %w", err)
+	}
+
+	base := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/.scripts", repo, ref)
+	if err := downloadFile(base+"/common.sh", filepath.Join(scriptsDir, "common.sh"), 0o644); err != nil {
+		return err
+	}
+	if err := downloadFile(base+"/"+scriptName, filepath.Join(scriptsDir, scriptName), 0o755); err != nil {
+		return err
+	}
+
+	cmd := exec.Command("bash", append([]string{filepath.Join(scriptsDir, scriptName)}, passthrough...)...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = append(os.Environ(), "TOOL_SHED_REPO="+repo, "TOOL_SHED_REF="+ref)
+	return cmd.Run()
+}
+
+func downloadFile(url string, destination string, mode os.FileMode) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("download %s: %w", url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download %s: unexpected status %s", url, resp.Status)
+	}
+
+	file, err := os.OpenFile(destination, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
+	if err != nil {
+		return fmt.Errorf("write %s: %w", destination, err)
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(file, resp.Body); err != nil {
+		return fmt.Errorf("write %s: %w", destination, err)
+	}
+
+	return nil
 }
 
 func runNativeBackend(repoRoot string, command string, args []string) error {
