@@ -140,6 +140,13 @@ resolve_runtime_binary() {
   return 1
 }
 
+go_binary_supports_runtime_flags() {
+  local candidate="$1"
+  local help_text
+  help_text="$("$candidate" --help 2>&1 || true)"
+  grep -q -- '--runtime' <<< "$help_text"
+}
+
 SCRIPT_PATH="${BASH_SOURCE:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 SHELL_SCRIPT="$SCRIPT_DIR/.scripts/install.sh"
@@ -185,7 +192,10 @@ fi
 
 if [[ "$runtime" == "go" ]]; then
   if bin="$(resolve_runtime_binary)"; then
-    exec "$bin" --runtime go --backend "$backend" install "${passthrough[@]}"
+    if go_binary_supports_runtime_flags "$bin"; then
+      exec "$bin" --runtime go --backend "$backend" install "${passthrough[@]}"
+    fi
+    TOOL_SHED_RUNTIME=go TOOL_SHED_BACKEND="$backend" exec "$bin" install "${passthrough[@]}"
   fi
   echo "Go runtime requested but no tool-shed binary found; falling back to shell runtime." >&2
 fi
