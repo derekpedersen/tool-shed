@@ -109,8 +109,16 @@ tool_state_remove() {
 
 tool_state_record_bundle() {
   [[ "${DRY_RUN:-false}" != true ]] || return 0
-  local bundle="$1" tool directory temporary
-  case "$bundle" in full|cloud|services|ai|software-developer|data-science) ;; *) return 0 ;; esac
+  local bundle="$1" normalized_bundle="" tool directory temporary
+
+  if [[ "$bundle" =~ ^[0-9]+$ ]]; then
+    normalized_bundle="$(tool_shed_catalog_bundle_name_for_key "$bundle" || true)"
+  elif tool_shed_catalog_has_bundle_name "$bundle"; then
+    normalized_bundle="$bundle"
+  else
+    return 0
+  fi
+
   directory="$(tool_state_dir)/bundles"
   mkdir -p "$directory" || return 1
   temporary="$(mktemp "$directory/.bundle.XXXXXX")" || return 1
@@ -118,6 +126,6 @@ tool_state_record_bundle() {
     if tool_state_has "$tool"; then
       printf '%s\n' "$tool" >> "$temporary"
     fi
-  done < <(resolve_target_tools "$bundle")
-  mv -f "$temporary" "$directory/$bundle"
+  done < <(resolve_target_tools "$normalized_bundle")
+  mv -f "$temporary" "$directory/$normalized_bundle"
 }

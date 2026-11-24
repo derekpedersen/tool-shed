@@ -44,16 +44,15 @@ case "$OS" in
 esac
 
 usage() {
-  cat <<'EOF'
-Usage: bash ./.tools/uninstall.sh [full|cloud|services|ai|software-developer|data-science|<tool> [tool ...]] [--dry-run] [--verbose]
+  local bundle_pattern
+  bundle_pattern="$(tool_shed_supported_bundles_pattern)"
+  cat <<EOF
+Usage: bash ./.tools/uninstall.sh [BUNDLE_KEY|${bundle_pattern}|<tool> [tool ...]] [--dry-run] [--verbose]
 
-Bundle targets:
-  full  = base tools + cloud CLIs + data/service tools
-  cloud = base tools + kubernetes/docker/cloud CLIs + jq/yq
-  services = local data/service tools only
-  ai    = AI-focused core dev tools + AI package profiles for python/go/node
-  software-developer = language/tooling core + cloud/devops CLIs
-  data-science = analytics-oriented tools and package-ready runtimes (no services)
+Bundle keys are numeric aliases for predefined bundles loaded from catalog.
+
+Catalog bundle mapping:
+$(tool_shed_print_numbered_bundles)
 
 Canonical tools:
   git, gpg, curl, wget, unzip, python3, r, nvm, node, golang, cpp, rust, java,
@@ -72,6 +71,7 @@ Use canonical names in scripts and examples.
 
 Examples:
   bash ./.tools/uninstall.sh full
+  bash ./.tools/uninstall.sh 0
   bash ./.tools/uninstall.sh services
   bash ./.tools/uninstall.sh kubectl docker --dry-run
   bash ./.tools/uninstall.sh kubectl --dry-run --verbose
@@ -84,6 +84,10 @@ VERBOSE=false
 args=()
 for arg in "$@"; do
   case "$arg" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
     --dry-run|-n)
       DRY_RUN=true
       ;;
@@ -107,75 +111,15 @@ for arg in "${args[@]}"; do
   case "$arg" in
     default|dev|ai-tools)
       echo "Unsupported bundle name: $arg"
-      echo "Supported bundles are: full, cloud, services, ai, software-developer, data-science"
+      echo "Supported bundles are: $(tool_shed_supported_bundles_csv)"
+      echo "Bundle key mapping:"
+      tool_shed_print_numbered_bundles
       exit 1
       ;;
   esac
 done
 
 INTERNAL_MODE="${TOOLS_UNINSTALL_MODULE_INTERNAL:-0}"
-
-expand_bundle() {
-  local item="$1"
-  case "$item" in
-    full)
-      printf '%s\n' "${FULL_BUNDLE[@]}"
-      ;;
-    cloud)
-      printf '%s\n' "${CLOUD_BUNDLE[@]}"
-      ;;
-    services)
-      printf '%s\n' "${SERVICES_BUNDLE[@]}"
-      ;;
-    ai)
-      printf '%s\n' "${AI_BUNDLE[@]}"
-      ;;
-    software-developer)
-      printf '%s\n' "${SOFTWARE_DEVELOPER_BUNDLE[@]}"
-      ;;
-    data-science)
-      printf '%s\n' "${DATA_SCIENCE_BUNDLE[@]}"
-      ;;
-    *)
-      printf '%s\n' "$item"
-      ;;
-  esac
-}
-
-resolve_targets() {
-  local expanded=()
-  local item
-  for item in "$@"; do
-    while IFS= read -r expanded_item; do
-      [[ -z "$expanded_item" ]] && continue
-      expanded+=("$expanded_item")
-    done < <(expand_bundle "$item")
-  done
-
-  local result=()
-  if (( ${#expanded[@]} > 0 )); then
-    for item in "${expanded[@]}"; do
-      local seen_item
-      local already_seen=false
-      if [[ ${#result[@]} -gt 0 ]]; then
-        for seen_item in "${result[@]}"; do
-          if [[ "$seen_item" == "$item" ]]; then
-            already_seen=true
-            break
-          fi
-        done
-      fi
-
-      if [[ "$already_seen" == false ]]; then
-        result+=("$item")
-      fi
-    done
-  fi
-
-  if [[ ${#result[@]} -gt 0 ]]; then
-    printf '%s\n' "${result[@]}"
-  fi
-}
 
 remove_git_identity_config() {
   if git config --global --get user.name >/dev/null 2>&1; then

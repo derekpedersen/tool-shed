@@ -1,0 +1,18 @@
+[
+  "git",
+  "curl",
+  "wget",
+  "unzip",
+  "python3",
+  "nvm",
+  "node",
+  "golang",
+  "kubectl",
+  "helm",
+  "docker",
+  "dotnetcore",
+  "vscode",
+  "python-ai",
+  "go-ai",
+  "node-full"
+]

@@ -17,9 +17,14 @@ source "$SCRIPT_DIR/tool-catalog.sh"
 source "$SCRIPT_DIR/state.sh"
 
 usage() {
-  echo "Usage: bash list.sh [full|cloud|services|ai|software-developer|data-science|all|TOOL ...]"
+  local bundle_pattern
+  bundle_pattern="$(tool_shed_supported_bundles_pattern)"
+  echo "Usage: bash list.sh [BUNDLE_KEY|${bundle_pattern}|all|TOOL ...]"
   echo "Lists detected supported tools, live versions, and management status."
   echo "With no target, checks every supported tool, including optional tools."
+  echo
+  echo "Catalog bundle mapping:"
+  tool_shed_print_numbered_bundles
 }
 
 targets=()
@@ -90,6 +95,9 @@ if (( listed == 0 )); then
 fi
 
 if [[ ${#targets[@]} -eq 0 ]]; then
+  echo
+  echo "Catalog bundle mapping:"
+  tool_shed_print_numbered_bundles
   echo
   echo "Recorded bundles (historical membership, not a current inventory):"
   has_bundle=false

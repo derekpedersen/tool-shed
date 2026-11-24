@@ -88,7 +88,7 @@ func TestResolveMixedOrder(t *testing.T) {
 		t.Fatalf("missing canonical tools in result: %v", got)
 	}
 	if positions["gcloud"] > positions["aws"] {
-		t.Fatalf("expected gcloud to appear before aws based on cloud bundle order: %v", got)
+		t.Fatalf("expected gcloud to appear before aws based on cloud bundle key ordering: %v", got)
 	}
 }
 

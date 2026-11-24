@@ -1,0 +1,10 @@
+[
+  "postgres",
+  "redis",
+  "mysql",
+  "clickhouse",
+  "mongodb",
+  "rabbitmq",
+  "elasticsearch",
+  "kafka"
+]

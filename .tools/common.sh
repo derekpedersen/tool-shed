@@ -14,188 +14,359 @@ set -euo pipefail
 #   whenever adding or changing install options.
 # ============================================================
 
-FULL_BUNDLE=(
-  git
-  curl
-  wget
-  unzip
-  python3
-  r
-  nvm
-  node
-  golang
-  cpp
-  rust
-  java
-  scala
-  kubectl
-  helm
-  direnv
-  kind
-  stern
-  kubeseal
-  httpie
-  rg
-  fd
-  bat
-  eza
-  fzf
-  gh
-  terraform
-  tflint
-  k9s
-  trivy
-  docker
-  dotnetcore
-  vscode
-  gcloud
-  aws
-  eksctl
-  az
-  doctl
-  jq
-  yq
-  postgres
-  redis
-  mysql
-  clickhouse
-  mongodb
-  rabbitmq
-  elasticsearch
-  kafka
-)
+COMMON_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
+REPO_ROOT="$(cd "$COMMON_TOOLS_DIR/.." && pwd)"
 
-CLOUD_BUNDLE=(
-  git
-  curl
-  wget
-  unzip
-  python3
-  nvm
-  node
-  golang
-  java
-  kubectl
-  helm
-  direnv
-  kind
-  stern
-  kubeseal
-  httpie
-  rg
-  fd
-  bat
-  eza
-  fzf
-  gh
-  terraform
-  tflint
-  k9s
-  trivy
-  docker
-  dotnetcore
-  vscode
-  gcloud
-  aws
-  eksctl
-  doctl
-  az
-  jq
-  yq
-)
+tool_shed_catalog_bundle_names() {
+  tool_shed_catalog_bundle_key_entries | awk -F '\t' '{print $2}'
+}
 
-SERVICES_BUNDLE=(
-  postgres
-  redis
-  mysql
-  clickhouse
-  mongodb
-  rabbitmq
-  elasticsearch
-  kafka
-)
+tool_shed_catalog_bundle_metadata_entries() {
+  local catalog_path="$REPO_ROOT/.config/catalog.json"
 
-AI_BUNDLE=(
-  git
-  curl
-  wget
-  unzip
-  python3
-  nvm
-  node
-  golang
-  kubectl
-  helm
-  docker
-  dotnetcore
-  vscode
-  python-ai
-  go-ai
-  node-full
-)
+  if [[ ! -f "$catalog_path" ]]; then
+    echo "Missing required catalog file: $catalog_path" >&2
+    return 1
+  fi
 
-SOFTWARE_DEVELOPER_BUNDLE=(
-  git
-  curl
-  wget
-  unzip
-  python3
-  nvm
-  node
-  golang
-  java
-  kubectl
-  helm
-  direnv
-  kind
-  stern
-  kubeseal
-  httpie
-  rg
-  fd
-  bat
-  eza
-  fzf
-  gh
-  terraform
-  tflint
-  k9s
-  trivy
-  docker
-  dotnetcore
-  vscode
-  gcloud
-  aws
-  eksctl
-  az
-  doctl
-  jq
-  yq
-)
+  awk '
+    BEGIN {
+      in_bundles = 0
+      bundles_depth = 0
+      in_bundle = 0
+      bundle_depth = 0
+      bundle_name = ""
+      bundle_key = ""
+      friendly_name = ""
+      description = ""
+    }
 
-DATA_SCIENCE_BUNDLE=(
-  git
-  curl
-  wget
-  unzip
-  python3
-  nvm
-  node
-  golang
-  r
-  java
-  docker
-  vscode
-  jq
-  yq
-  httpie
-  rg
-  fd
-  bat
-  eza
-  fzf
-  gh
-)
+    {
+      if (!in_bundles && $0 ~ /"bundles"[[:space:]]*:[[:space:]]*\{/) {
+        in_bundles = 1
+        bundles_depth = 1
+        next
+      }
+
+      if (in_bundles) {
+        if (!in_bundle && match($0, /^[[:space:]]*"[^"]+"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/)) {
+          line = $0
+          sub(/^[[:space:]]*"/, "", line)
+          sub(/"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/, "", line)
+          bundle_name = line
+          bundle_key = ""
+          friendly_name = ""
+          description = ""
+          in_bundle = 1
+          bundle_depth = 1
+          bundles_depth += 1
+          next
+        }
+
+        if (in_bundle) {
+          if (bundle_depth == 1 && match($0, /^[[:space:]]*"key"[[:space:]]*:[[:space:]]*[0-9]+[[:space:]]*,?[[:space:]]*$/)) {
+            line = $0
+            sub(/^[[:space:]]*"key"[[:space:]]*:[[:space:]]*/, "", line)
+            sub(/[[:space:]]*,?[[:space:]]*$/, "", line)
+            bundle_key = line
+          } else if (bundle_depth == 1 && match($0, /^[[:space:]]*"friendlyName"[[:space:]]*:[[:space:]]*"[^"]+"[[:space:]]*,?[[:space:]]*$/)) {
+            line = $0
+            sub(/^[[:space:]]*"friendlyName"[[:space:]]*:[[:space:]]*"/, "", line)
+            sub(/"[[:space:]]*,?[[:space:]]*$/, "", line)
+            friendly_name = line
+          } else if (bundle_depth == 1 && match($0, /^[[:space:]]*"description"[[:space:]]*:[[:space:]]*"[^"]+"[[:space:]]*,?[[:space:]]*$/)) {
+            line = $0
+            sub(/^[[:space:]]*"description"[[:space:]]*:[[:space:]]*"/, "", line)
+            sub(/"[[:space:]]*,?[[:space:]]*$/, "", line)
+            description = line
+          }
+
+          line = $0
+          opens = gsub(/\{/, "{", line)
+          closes = gsub(/\}/, "}", line)
+          bundle_depth += opens - closes
+          if (bundle_depth <= 0) {
+            if (friendly_name == "") {
+              friendly_name = bundle_name
+            }
+            printf "%s\t%s\t%s\t%s\n", bundle_key, bundle_name, friendly_name, description
+            in_bundle = 0
+            bundle_name = ""
+          }
+        }
+
+        line = $0
+        opens = gsub(/\{/, "{", line)
+        closes = gsub(/\}/, "}", line)
+        bundles_depth += opens - closes
+        if (bundles_depth <= 0) {
+          in_bundles = 0
+        }
+      }
+    }
+  ' "$catalog_path" | sort -n -k1,1
+}
+
+tool_shed_catalog_bundle_key_entries() {
+  tool_shed_catalog_bundle_metadata_entries | awk -F '\t' '{print $1"\t"$2}'
+}
+
+tool_shed_catalog_bundle_name_for_key() {
+  local bundle_key="$1"
+  local key
+  local bundle_name
+
+  while IFS=$'\t' read -r key bundle_name; do
+    if [[ "$key" == "$bundle_key" ]]; then
+      printf '%s\n' "$bundle_name"
+      return 0
+    fi
+  done < <(tool_shed_catalog_bundle_key_entries)
+
+  return 1
+}
+
+tool_shed_catalog_has_bundle_name() {
+  local candidate="$1"
+  local bundle_name
+
+  while IFS= read -r bundle_name; do
+    if [[ "$bundle_name" == "$candidate" ]]; then
+      return 0
+    fi
+  done < <(tool_shed_catalog_bundle_names)
+
+  return 1
+}
+
+tool_shed_print_numbered_bundles() {
+  local key
+  local bundle_name
+  local friendly_name
+  local description
+
+  while IFS=$'\t' read -r key bundle_name friendly_name description; do
+    if [[ -n "$description" ]]; then
+      printf '  %s) %s (%s): %s\n' "$key" "$friendly_name" "$bundle_name" "$description"
+    else
+      printf '  %s) %s (%s)\n' "$key" "$friendly_name" "$bundle_name"
+    fi
+  done < <(tool_shed_catalog_bundle_metadata_entries)
+}
+
+tool_shed_supported_bundles_csv() {
+  local bundles=()
+  local out=""
+  local item
+
+  while IFS= read -r item; do
+    [[ -z "$item" ]] && continue
+    bundles+=("$item")
+  done < <(tool_shed_catalog_bundle_names)
+
+  for item in "${bundles[@]}"; do
+    if [[ -z "$out" ]]; then
+      out="$item"
+    else
+      out+=", $item"
+    fi
+  done
+
+  printf '%s\n' "$out"
+}
+
+tool_shed_supported_bundles_pattern() {
+  local bundles=()
+  local out=""
+  local item
+
+  while IFS= read -r item; do
+    [[ -z "$item" ]] && continue
+    bundles+=("$item")
+  done < <(tool_shed_catalog_bundle_names)
+
+  for item in "${bundles[@]}"; do
+    if [[ -z "$out" ]]; then
+      out="$item"
+    else
+      out+="|$item"
+    fi
+  done
+
+  printf '%s\n' "$out"
+}
+
+tool_shed_catalog_bundle_entries() {
+  local bundle_name="$1"
+  local catalog_path="$REPO_ROOT/.config/catalog.json"
+
+  awk -v bundle="$bundle_name" '
+    BEGIN {
+      in_bundles = 0
+      bundles_depth = 0
+      in_target = 0
+      target_depth = 0
+      in_tools = 0
+      tools_depth = 0
+      current_tool = ""
+    }
+
+    /"bundles"[[:space:]]*:[[:space:]]*\{/ {
+      in_bundles = 1
+      bundles_depth = 1
+      next
+    }
+
+    in_bundles {
+      if (!in_target && match($0, "^[[:space:]]*\"" bundle "\"[[:space:]]*:[[:space:]]*\\{")) {
+        in_target = 1
+        target_depth = 1
+        next
+      }
+
+      if (in_target) {
+        if (!in_tools && match($0, /^[[:space:]]*"tools"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/)) {
+          in_tools = 1
+          tools_depth = 1
+        } else if (in_tools) {
+          if (match($0, /^[[:space:]]*"[^"]+"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/)) {
+            line = $0
+            sub(/^[[:space:]]*"/, "", line)
+            sub(/"[[:space:]]*:[[:space:]]*\{[[:space:]]*$/, "", line)
+            if (line != "order") {
+              current_tool = line
+            }
+          } else if (current_tool != "" && match($0, /^[[:space:]]*"key"[[:space:]]*:[[:space:]]*[0-9]+[[:space:]]*,?[[:space:]]*$/)) {
+            line = $0
+            sub(/^[[:space:]]*"key"[[:space:]]*:[[:space:]]*/, "", line)
+            sub(/[[:space:]]*,?[[:space:]]*$/, "", line)
+            printf "%s\t%s\n", line, current_tool
+            current_tool = ""
+          }
+
+          line = $0
+          opens = gsub(/\{/, "{", line)
+          closes = gsub(/\}/, "}", line)
+          tools_depth += opens - closes
+          if (tools_depth <= 0) {
+            in_tools = 0
+          }
+        }
+
+        line = $0
+        opens = gsub(/\{/, "{", line)
+        closes = gsub(/\}/, "}", line)
+        target_depth += opens - closes
+        if (target_depth <= 0) {
+          in_target = 0
+        }
+      }
+
+      line = $0
+      opens = gsub(/\{/, "{", line)
+      closes = gsub(/\}/, "}", line)
+      bundles_depth += opens - closes
+      if (bundles_depth <= 0) {
+        in_bundles = 0
+      }
+    }
+  ' "$catalog_path" | sort -n -k1,1
+}
+
+tool_shed_catalog_has_tool_key() {
+  local tool_key="$1"
+  local catalog_path="$REPO_ROOT/.config/catalog.json"
+
+  awk -v key="$tool_key" '
+    /"tools"[[:space:]]*:[[:space:]]*\{/ {
+      in_tools = 1
+      depth = 1
+      next
+    }
+    in_tools {
+      if (match($0, /^[[:space:]]*"[^"]+"[[:space:]]*:[[:space:]]*\{/)) {
+        split($0, parts, "\"")
+        if (length(parts) >= 3 && parts[2] == key) {
+          found = 1
+        }
+      }
+
+      line = $0
+      opens = gsub(/\{/, "{", line)
+      closes = gsub(/\}/, "}", line)
+      depth += opens - closes
+
+      if (depth <= 0) {
+        in_tools = 0
+      }
+    }
+    END {
+      if (found == 1) {
+        exit 0
+      }
+      exit 1
+    }
+  ' "$catalog_path"
+}
+
+tool_shed_load_bundle_array() {
+  local bundle_name="$1"
+  local target_array="$2"
+  local order
+  local value
+  local escaped
+  local items=()
+  local parsed=()
+  local expected_order=0
+
+  while IFS=$'\t' read -r order value; do
+    parsed+=("$order"$'\t'"$value")
+  done < <(tool_shed_catalog_bundle_entries "$bundle_name")
+
+  if [[ ${#parsed[@]} -eq 0 ]]; then
+    echo "No bundle entries parsed from .config/catalog.json for bundle: $bundle_name" >&2
+    return 1
+  fi
+
+  for entry in "${parsed[@]}"; do
+    order="${entry%%$'\t'*}"
+    value="${entry#*$'\t'}"
+
+    if [[ -z "$order" || -z "$value" ]]; then
+      echo "Invalid bundle entry in .config/catalog.json for bundle: $bundle_name" >&2
+      return 1
+    fi
+
+    if [[ "$order" != "$expected_order" ]]; then
+      echo "Bundle $bundle_name keys must be contiguous from 0; expected $expected_order got $order" >&2
+      return 1
+    fi
+    expected_order=$((expected_order + 1))
+
+    items+=("$value")
+  done
+
+  eval "$target_array=()"
+  for value in "${items[@]}"; do
+    if ! tool_shed_catalog_has_tool_key "$value"; then
+      echo "Bundle $bundle_name references unknown tool key in .config/catalog.json: $value" >&2
+      return 1
+    fi
+    escaped="$(printf '%q' "$value")"
+    eval "$target_array+=($escaped)"
+  done
+}
+
+tool_shed_load_bundles_from_catalog() {
+  tool_shed_load_bundle_array "full" FULL_BUNDLE
+  tool_shed_load_bundle_array "cloud" CLOUD_BUNDLE
+  tool_shed_load_bundle_array "services" SERVICES_BUNDLE
+  tool_shed_load_bundle_array "ai" AI_BUNDLE
+  tool_shed_load_bundle_array "software-developer" SOFTWARE_DEVELOPER_BUNDLE
+  tool_shed_load_bundle_array "data-science" DATA_SCIENCE_BUNDLE
+}
+
+tool_shed_load_bundles_from_catalog
 
 UPDATEABLE_TOOLS=(
   git
@@ -251,9 +422,6 @@ UPDATEABLE_TOOLS=(
 )
 
 ALL_TOOLS=("${UPDATEABLE_TOOLS[@]}" git-config git-signing identity ssh-key)
-
-COMMON_TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
-REPO_ROOT="$(cd "$COMMON_TOOLS_DIR/.." && pwd)"
 
 TOOL_SHED_VERBOSE="${TOOL_SHED_VERBOSE:-0}"
 TOOL_SHED_PROGRESS="${TOOL_SHED_PROGRESS:-auto}"
@@ -1069,14 +1237,26 @@ canonical_tool_name() {
 
 expand_bundle_item() {
   local item="$1"
+  local bundle_from_key=""
+  local key
+  local value
+
+  if [[ "$item" =~ ^[0-9]+$ ]]; then
+    bundle_from_key="$(tool_shed_catalog_bundle_name_for_key "$item" || true)"
+    if [[ -n "$bundle_from_key" ]]; then
+      item="$bundle_from_key"
+    fi
+  fi
+
+  if tool_shed_catalog_has_bundle_name "$item"; then
+    while IFS=$'\t' read -r key value; do
+      [[ -z "$value" ]] && continue
+      printf '%s\n' "$value"
+    done < <(tool_shed_catalog_bundle_entries "$item")
+    return 0
+  fi
 
   case "$item" in
-    full)
-      printf '%s\n' "${FULL_BUNDLE[@]}"
-      ;;
-    ai)
-      printf '%s\n' "${AI_BUNDLE[@]}"
-      ;;
     python-core)
       printf '%s\n' "python3"
       ;;
@@ -1109,18 +1289,6 @@ expand_bundle_item() {
       ;;
     node)
       printf '%s\n' "node"
-      ;;
-    cloud)
-      printf '%s\n' "${CLOUD_BUNDLE[@]}"
-      ;;
-    services)
-      printf '%s\n' "${SERVICES_BUNDLE[@]}"
-      ;;
-    software-developer)
-      printf '%s\n' "${SOFTWARE_DEVELOPER_BUNDLE[@]}"
-      ;;
-    data-science)
-      printf '%s\n' "${DATA_SCIENCE_BUNDLE[@]}"
       ;;
     *)
       printf '%s\n' "$item"

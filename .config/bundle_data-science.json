@@ -1,0 +1,23 @@
+[
+  "git",
+  "curl",
+  "wget",
+  "unzip",
+  "python3",
+  "nvm",
+  "node",
+  "golang",
+  "r",
+  "java",
+  "docker",
+  "vscode",
+  "jq",
+  "yq",
+  "httpie",
+  "rg",
+  "fd",
+  "bat",
+  "eza",
+  "fzf",
+  "gh"
+]

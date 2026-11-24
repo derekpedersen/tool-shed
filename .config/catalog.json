@@ -1,0 +1,876 @@
+{
+  "version": 1,
+  "tools": {
+    "aws": {
+      "displayName": "AWS CLI",
+      "description": "Amazon Web Services command line interface",
+      "aliases": [
+        "awscli"
+      ]
+    },
+    "az": {
+      "displayName": "Azure CLI",
+      "description": "Microsoft Azure command line interface",
+      "aliases": [
+        "azure",
+        "azure-cli"
+      ]
+    },
+    "bat": {
+      "displayName": "bat",
+      "description": "A cat clone with syntax highlighting"
+    },
+    "clickhouse": {
+      "displayName": "ClickHouse",
+      "description": "ClickHouse local development tooling"
+    },
+    "cpp": {
+      "displayName": "C/C++ Toolchain",
+      "description": "C and C++ compiler/build tooling",
+      "aliases": [
+        "c++"
+      ]
+    },
+    "curl": {
+      "displayName": "curl",
+      "description": "Command line data transfer utility"
+    },
+    "direnv": {
+      "displayName": "direnv",
+      "description": "Per-directory environment variable loader"
+    },
+    "docker": {
+      "displayName": "Docker",
+      "description": "Container tooling and runtime"
+    },
+    "doctl": {
+      "displayName": "doctl",
+      "description": "DigitalOcean command line interface",
+      "aliases": [
+        "digitalocean",
+        "doks"
+      ]
+    },
+    "dotnetcore": {
+      "displayName": ".NET",
+      "description": ".NET SDK/runtime tooling",
+      "aliases": [
+        "dotnet"
+      ]
+    },
+    "eksctl": {
+      "displayName": "eksctl",
+      "description": "Amazon EKS cluster management CLI"
+    },
+    "elasticsearch": {
+      "displayName": "Elasticsearch",
+      "description": "Elasticsearch local development tooling"
+    },
+    "eza": {
+      "displayName": "eza",
+      "description": "Modern file listing utility"
+    },
+    "fd": {
+      "displayName": "fd",
+      "description": "Fast file finder"
+    },
+    "fzf": {
+      "displayName": "fzf",
+      "description": "Fuzzy finder for shells"
+    },
+    "gcloud": {
+      "displayName": "Google Cloud CLI",
+      "description": "Google Cloud SDK command line tooling",
+      "aliases": [
+        "google-cloud"
+      ]
+    },
+    "gh": {
+      "displayName": "GitHub CLI",
+      "description": "GitHub command line interface"
+    },
+    "git": {
+      "displayName": "Git",
+      "description": "Distributed version control system"
+    },
+    "go-ai": {
+      "displayName": "Go AI Profile",
+      "description": "Go developer package profile selector for AI workflows",
+      "expandsTo": [
+        "golang"
+      ]
+    },
+    "go-core": {
+      "displayName": "Go Core Profile",
+      "description": "Go developer package profile selector for core workflows",
+      "expandsTo": [
+        "golang"
+      ]
+    },
+    "go-full": {
+      "displayName": "Go Full Profile",
+      "description": "Go developer package profile selector for full workflows",
+      "expandsTo": [
+        "golang"
+      ]
+    },
+    "go": {
+      "displayName": "Go Profile Alias",
+      "description": "Alias profile selector that resolves to golang",
+      "expandsTo": [
+        "golang"
+      ]
+    },
+    "golang": {
+      "displayName": "Go",
+      "description": "Go language toolchain",
+      "aliases": [
+        "go",
+        "go-ai",
+        "go-core",
+        "go-full",
+        "golang"
+      ]
+    },
+    "helm": {
+      "displayName": "Helm",
+      "description": "Kubernetes package manager"
+    },
+    "httpie": {
+      "displayName": "HTTPie",
+      "description": "Human-friendly HTTP client"
+    },
+    "java": {
+      "displayName": "Java",
+      "description": "Java runtime and JDK tooling",
+      "aliases": [
+        "java",
+        "jdk",
+        "openjdk",
+        "temurin"
+      ]
+    },
+    "jq": {
+      "displayName": "jq",
+      "description": "JSON processor"
+    },
+    "k9s": {
+      "displayName": "k9s",
+      "description": "Kubernetes terminal UI"
+    },
+    "kafka": {
+      "displayName": "Kafka",
+      "description": "Kafka local development tooling"
+    },
+    "kind": {
+      "displayName": "kind",
+      "description": "Kubernetes in Docker local clusters"
+    },
+    "kubectl": {
+      "displayName": "kubectl",
+      "description": "Kubernetes command line interface",
+      "aliases": [
+        "kubernetes-cli"
+      ]
+    },
+    "kubeseal": {
+      "displayName": "kubeseal",
+      "description": "Sealed Secrets command line interface"
+    },
+    "mongodb": {
+      "displayName": "MongoDB",
+      "description": "MongoDB local development tooling"
+    },
+    "mysql": {
+      "displayName": "MySQL",
+      "description": "MySQL local development tooling"
+    },
+    "node": {
+      "displayName": "Node.js",
+      "description": "Node.js runtime and package tooling",
+      "aliases": [
+        "node",
+        "node-core",
+        "node-full"
+      ],
+      "expandsTo": [
+        "node"
+      ]
+    },
+    "node-core": {
+      "displayName": "Node Core Profile",
+      "description": "Node developer package profile selector for core workflows",
+      "expandsTo": [
+        "node"
+      ]
+    },
+    "node-full": {
+      "displayName": "Node Full Profile",
+      "description": "Node developer package profile selector for full workflows",
+      "expandsTo": [
+        "node"
+      ]
+    },
+    "nvm": {
+      "displayName": "nvm",
+      "description": "Node Version Manager"
+    },
+    "postgres": {
+      "displayName": "PostgreSQL",
+      "description": "PostgreSQL local development tooling"
+    },
+    "python": {
+      "displayName": "Python Profile Alias",
+      "description": "Alias profile selector that resolves to python3",
+      "expandsTo": [
+        "python3"
+      ]
+    },
+    "python-ai": {
+      "displayName": "Python AI Profile",
+      "description": "Python developer package profile selector for AI workflows",
+      "expandsTo": [
+        "python3"
+      ]
+    },
+    "python-core": {
+      "displayName": "Python Core Profile",
+      "description": "Python developer package profile selector for core workflows",
+      "expandsTo": [
+        "python3"
+      ]
+    },
+    "python-full": {
+      "displayName": "Python Full Profile",
+      "description": "Python developer package profile selector for full workflows",
+      "expandsTo": [
+        "python3"
+      ]
+    },
+    "python3": {
+      "displayName": "Python 3",
+      "description": "Python runtime and package tooling",
+      "aliases": [
+        "python",
+        "python-ai",
+        "python-core",
+        "python-full"
+      ]
+    },
+    "r": {
+      "displayName": "R",
+      "description": "R language runtime and tooling",
+      "aliases": [
+        "R",
+        "r-lang"
+      ]
+    },
+    "rabbitmq": {
+      "displayName": "RabbitMQ",
+      "description": "RabbitMQ local development tooling"
+    },
+    "redis": {
+      "displayName": "Redis",
+      "description": "Redis local development tooling"
+    },
+    "rg": {
+      "displayName": "ripgrep",
+      "description": "Fast recursive text search"
+    },
+    "rust": {
+      "displayName": "Rust",
+      "description": "Rust toolchain",
+      "aliases": [
+        "rustup"
+      ]
+    },
+    "scala": {
+      "displayName": "Scala",
+      "description": "Scala language tooling",
+      "aliases": [
+        "scala-cli"
+      ]
+    },
+    "stern": {
+      "displayName": "stern",
+      "description": "Multi-pod Kubernetes log tailing"
+    },
+    "terraform": {
+      "displayName": "Terraform",
+      "description": "Infrastructure-as-code CLI"
+    },
+    "tflint": {
+      "displayName": "tflint",
+      "description": "Terraform linter"
+    },
+    "trivy": {
+      "displayName": "Trivy",
+      "description": "Vulnerability and configuration scanner"
+    },
+    "unzip": {
+      "displayName": "unzip",
+      "description": "ZIP extraction utility"
+    },
+    "vscode": {
+      "displayName": "Visual Studio Code",
+      "description": "Editor and integration tooling",
+      "aliases": [
+        "code"
+      ]
+    },
+    "wget": {
+      "displayName": "wget",
+      "description": "Network downloader utility"
+    },
+    "yq": {
+      "displayName": "yq",
+      "description": "YAML processor"
+    },
+    "julia": {
+      "displayName": "julia",
+      "description": "Auto-created alias target",
+      "aliases": [
+        "juliaup"
+      ]
+    }
+  },
+  "bundles": {
+    "full": {
+      "key": 0,
+      "tools": {
+        "git": {
+          "key": 0
+        },
+        "curl": {
+          "key": 1
+        },
+        "wget": {
+          "key": 2
+        },
+        "unzip": {
+          "key": 3
+        },
+        "python3": {
+          "key": 4
+        },
+        "r": {
+          "key": 5
+        },
+        "nvm": {
+          "key": 6
+        },
+        "node": {
+          "key": 7
+        },
+        "golang": {
+          "key": 8
+        },
+        "cpp": {
+          "key": 9
+        },
+        "rust": {
+          "key": 10
+        },
+        "java": {
+          "key": 11
+        },
+        "scala": {
+          "key": 12
+        },
+        "kubectl": {
+          "key": 13
+        },
+        "helm": {
+          "key": 14
+        },
+        "direnv": {
+          "key": 15
+        },
+        "kind": {
+          "key": 16
+        },
+        "stern": {
+          "key": 17
+        },
+        "kubeseal": {
+          "key": 18
+        },
+        "httpie": {
+          "key": 19
+        },
+        "rg": {
+          "key": 20
+        },
+        "fd": {
+          "key": 21
+        },
+        "bat": {
+          "key": 22
+        },
+        "eza": {
+          "key": 23
+        },
+        "fzf": {
+          "key": 24
+        },
+        "gh": {
+          "key": 25
+        },
+        "terraform": {
+          "key": 26
+        },
+        "tflint": {
+          "key": 27
+        },
+        "k9s": {
+          "key": 28
+        },
+        "trivy": {
+          "key": 29
+        },
+        "docker": {
+          "key": 30
+        },
+        "dotnetcore": {
+          "key": 31
+        },
+        "vscode": {
+          "key": 32
+        },
+        "gcloud": {
+          "key": 33
+        },
+        "aws": {
+          "key": 34
+        },
+        "eksctl": {
+          "key": 35
+        },
+        "az": {
+          "key": 36
+        },
+        "doctl": {
+          "key": 37
+        },
+        "jq": {
+          "key": 38
+        },
+        "yq": {
+          "key": 39
+        },
+        "postgres": {
+          "key": 40
+        },
+        "redis": {
+          "key": 41
+        },
+        "mysql": {
+          "key": 42
+        },
+        "clickhouse": {
+          "key": 43
+        },
+        "mongodb": {
+          "key": 44
+        },
+        "rabbitmq": {
+          "key": 45
+        },
+        "elasticsearch": {
+          "key": 46
+        },
+        "kafka": {
+          "key": 47
+        }
+      },
+      "friendlyName": "Full",
+      "description": "Complete developer workstation bundle across core, cloud, AI, and services."
+    },
+    "cloud": {
+      "key": 1,
+      "tools": {
+        "git": {
+          "key": 0
+        },
+        "curl": {
+          "key": 1
+        },
+        "wget": {
+          "key": 2
+        },
+        "unzip": {
+          "key": 3
+        },
+        "python3": {
+          "key": 4
+        },
+        "nvm": {
+          "key": 5
+        },
+        "node": {
+          "key": 6
+        },
+        "golang": {
+          "key": 7
+        },
+        "java": {
+          "key": 8
+        },
+        "kubectl": {
+          "key": 9
+        },
+        "helm": {
+          "key": 10
+        },
+        "direnv": {
+          "key": 11
+        },
+        "kind": {
+          "key": 12
+        },
+        "stern": {
+          "key": 13
+        },
+        "kubeseal": {
+          "key": 14
+        },
+        "httpie": {
+          "key": 15
+        },
+        "rg": {
+          "key": 16
+        },
+        "fd": {
+          "key": 17
+        },
+        "bat": {
+          "key": 18
+        },
+        "eza": {
+          "key": 19
+        },
+        "fzf": {
+          "key": 20
+        },
+        "gh": {
+          "key": 21
+        },
+        "terraform": {
+          "key": 22
+        },
+        "tflint": {
+          "key": 23
+        },
+        "k9s": {
+          "key": 24
+        },
+        "trivy": {
+          "key": 25
+        },
+        "docker": {
+          "key": 26
+        },
+        "dotnetcore": {
+          "key": 27
+        },
+        "vscode": {
+          "key": 28
+        },
+        "gcloud": {
+          "key": 29
+        },
+        "aws": {
+          "key": 30
+        },
+        "eksctl": {
+          "key": 31
+        },
+        "doctl": {
+          "key": 32
+        },
+        "az": {
+          "key": 33
+        },
+        "jq": {
+          "key": 34
+        },
+        "yq": {
+          "key": 35
+        }
+      },
+      "friendlyName": "Cloud",
+      "description": "Cloud and Kubernetes focused developer bundle without local data services."
+    },
+    "services": {
+      "key": 2,
+      "tools": {
+        "postgres": {
+          "key": 0
+        },
+        "redis": {
+          "key": 1
+        },
+        "mysql": {
+          "key": 2
+        },
+        "clickhouse": {
+          "key": 3
+        },
+        "mongodb": {
+          "key": 4
+        },
+        "rabbitmq": {
+          "key": 5
+        },
+        "elasticsearch": {
+          "key": 6
+        },
+        "kafka": {
+          "key": 7
+        }
+      },
+      "friendlyName": "Services",
+      "description": "Local data and messaging services bundle for app integration testing."
+    },
+    "ai": {
+      "key": 3,
+      "tools": {
+        "git": {
+          "key": 0
+        },
+        "curl": {
+          "key": 1
+        },
+        "wget": {
+          "key": 2
+        },
+        "unzip": {
+          "key": 3
+        },
+        "python3": {
+          "key": 4
+        },
+        "nvm": {
+          "key": 5
+        },
+        "node": {
+          "key": 6
+        },
+        "golang": {
+          "key": 7
+        },
+        "kubectl": {
+          "key": 8
+        },
+        "helm": {
+          "key": 9
+        },
+        "docker": {
+          "key": 10
+        },
+        "dotnetcore": {
+          "key": 11
+        },
+        "vscode": {
+          "key": 12
+        },
+        "python-ai": {
+          "key": 13
+        },
+        "go-ai": {
+          "key": 14
+        },
+        "node-full": {
+          "key": 15
+        }
+      },
+      "friendlyName": "AI",
+      "description": "AI-focused developer bundle with language runtimes and productivity tooling."
+    },
+    "software-developer": {
+      "key": 4,
+      "tools": {
+        "git": {
+          "key": 0
+        },
+        "curl": {
+          "key": 1
+        },
+        "wget": {
+          "key": 2
+        },
+        "unzip": {
+          "key": 3
+        },
+        "python3": {
+          "key": 4
+        },
+        "nvm": {
+          "key": 5
+        },
+        "node": {
+          "key": 6
+        },
+        "golang": {
+          "key": 7
+        },
+        "java": {
+          "key": 8
+        },
+        "kubectl": {
+          "key": 9
+        },
+        "helm": {
+          "key": 10
+        },
+        "direnv": {
+          "key": 11
+        },
+        "kind": {
+          "key": 12
+        },
+        "stern": {
+          "key": 13
+        },
+        "kubeseal": {
+          "key": 14
+        },
+        "httpie": {
+          "key": 15
+        },
+        "rg": {
+          "key": 16
+        },
+        "fd": {
+          "key": 17
+        },
+        "bat": {
+          "key": 18
+        },
+        "eza": {
+          "key": 19
+        },
+        "fzf": {
+          "key": 20
+        },
+        "gh": {
+          "key": 21
+        },
+        "terraform": {
+          "key": 22
+        },
+        "tflint": {
+          "key": 23
+        },
+        "k9s": {
+          "key": 24
+        },
+        "trivy": {
+          "key": 25
+        },
+        "docker": {
+          "key": 26
+        },
+        "dotnetcore": {
+          "key": 27
+        },
+        "vscode": {
+          "key": 28
+        },
+        "gcloud": {
+          "key": 29
+        },
+        "aws": {
+          "key": 30
+        },
+        "eksctl": {
+          "key": 31
+        },
+        "az": {
+          "key": 32
+        },
+        "doctl": {
+          "key": 33
+        },
+        "jq": {
+          "key": 34
+        },
+        "yq": {
+          "key": 35
+        }
+      },
+      "friendlyName": "Software Developer",
+      "description": "General software engineering bundle with core languages, tools, and DevOps CLIs."
+    },
+    "data-science": {
+      "key": 5,
+      "tools": {
+        "git": {
+          "key": 0
+        },
+        "curl": {
+          "key": 1
+        },
+        "wget": {
+          "key": 2
+        },
+        "unzip": {
+          "key": 3
+        },
+        "python3": {
+          "key": 4
+        },
+        "nvm": {
+          "key": 5
+        },
+        "node": {
+          "key": 6
+        },
+        "golang": {
+          "key": 7
+        },
+        "r": {
+          "key": 8
+        },
+        "java": {
+          "key": 9
+        },
+        "docker": {
+          "key": 10
+        },
+        "vscode": {
+          "key": 11
+        },
+        "jq": {
+          "key": 12
+        },
+        "yq": {
+          "key": 13
+        },
+        "httpie": {
+          "key": 14
+        },
+        "rg": {
+          "key": 15
+        },
+        "fd": {
+          "key": 16
+        },
+        "bat": {
+          "key": 17
+        },
+        "eza": {
+          "key": 18
+        },
+        "fzf": {
+          "key": 19
+        },
+        "gh": {
+          "key": 20
+        }
+      },
+      "friendlyName": "Data Science",
+      "description": "Analytics and data science bundle with runtimes, notebooks, and CLI tooling."
+    }
+  }
+}

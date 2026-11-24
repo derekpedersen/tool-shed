@@ -15,7 +15,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: bash uninstall.sh [full|cloud|services|ai|software-developer|data-science|TOOL ...] [--dry-run]"
+  echo "Usage: bash uninstall.sh [BUNDLE_KEY|BUNDLE|TOOL ...] [--dry-run]"
   echo "Interactive runs can select uninstall targets from installed tools."
   echo "Non-interactive runs require explicit tool or bundle targets."
 }

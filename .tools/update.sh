@@ -41,7 +41,9 @@ source "$SCRIPT_DIR/update-runtime.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 usage() {
-  echo "Usage: bash .tools/update.sh [full|cloud|services|ai|software-developer|data-science|all|TOOL ...] [options]"
+  local bundle_pattern
+  bundle_pattern="$(tool_shed_supported_bundles_pattern)"
+  echo "Usage: bash .tools/update.sh [BUNDLE_KEY|${bundle_pattern}|all|TOOL ...] [options]"
   echo "No targets: update all managed, installed tools. Missing tools are never installed."
   echo "  --dry-run, -n       Preview without downloads, metadata refreshes, or writes"
   echo "  --adopt             Record existing selected installations, without updating"
@@ -52,6 +54,9 @@ usage() {
   echo "  --with-packages     Also update recorded Python/Go/Node developer profiles"
   echo "  --verbose, -v       Show command-level output during updates"
   echo "Env: TOOL_SHED_PROGRESS=auto|on|off controls progress rendering mode"
+  echo
+  echo "Catalog bundle mapping:"
+  tool_shed_print_numbered_bundles
 }
 
 export DRY_RUN=false UPDATE_ALLOW_MAJOR=false UPDATE_INCLUDE_SERVICES=false UPDATE_YES=false UPDATE_WITH_PACKAGES=false
@@ -80,6 +85,9 @@ tool_shed_set_verbose "$verbose"
 if [[ "$list" == true ]]; then
   echo "Managed tools:"
   tool_state_list
+  echo
+  echo "Catalog bundle mapping:"
+  tool_shed_print_numbered_bundles
   echo "Recorded bundles (membership reflects install/adoption time):"
   for bundle_record in "$(tool_state_dir)"/bundles/*; do
     [[ -f "$bundle_record" ]] || continue

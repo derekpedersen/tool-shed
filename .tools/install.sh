@@ -106,7 +106,9 @@ for arg in "${args[@]}"; do
   case "$arg" in
     default|dev|ai-tools)
       echo "Unsupported bundle name: $arg"
-      echo "Supported bundles are: full, cloud, services, ai, software-developer, data-science"
+      echo "Supported bundles are: $(tool_shed_supported_bundles_csv)"
+      echo "Bundle key mapping:"
+      tool_shed_print_numbered_bundles
       exit 1
       ;;
   esac
