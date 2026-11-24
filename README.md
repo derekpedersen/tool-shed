@@ -17,7 +17,7 @@ Root scripts are self-contained entrypoints for day-to-day operations.
 | Apply updates | curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/update.sh \| bash -s -- |
 | Go runtime example | curl -fsSL https://raw.githubusercontent.com/derekpedersen/tool-shed/main/list.sh \| bash -s -- --runtime go --backend native cloud |
 
-> Review remote scripts before piping to Bash. Interactive uninstall prompts for installed targets; non-interactive uninstall requires explicit targets. Preview updates before applying changes.
+> Review remote scripts before piping to Bash. Interactive uninstall prompts for installed targets; non-interactive uninstall requires explicit targets. Preview updates before applying changes. Go-runtime wrappers auto-refresh a stale cached binary once before using legacy compatibility fallback.
 
 Adopt existing installs before updates when needed; see [.tools/README.md](.tools/README.md).
 

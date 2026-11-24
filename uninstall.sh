@@ -62,6 +62,7 @@ resolve_platform_target() {
 }
 
 download_runtime_binary() {
+  local force_refresh="${1:-0}"
   if [[ "${TOOL_SHED_AUTO_DOWNLOAD_BINARY:-1}" != "1" ]]; then
     return 1
   fi
@@ -83,7 +84,7 @@ download_runtime_binary() {
   cache_path="$cache_dir/$name"
 
   mkdir -p "$cache_dir"
-  if [[ ! -x "$cache_path" ]]; then
+  if [[ "$force_refresh" == "1" || ! -x "$cache_path" ]]; then
     echo "Downloading tool-shed binary for $target from github.com/$repo ($ref)..." >&2
     curl -fsSL "$base/$name" -o "$cache_path" || return 1
     chmod +x "$cache_path" || return 1
@@ -192,6 +193,16 @@ if [[ "$runtime" == "go" ]]; then
     if go_binary_supports_runtime_flags "$bin"; then
       exec "$bin" --runtime go --backend "$backend" uninstall "${passthrough[@]}"
     fi
+
+    # Try to refresh the cached binary once before using compatibility fallback.
+    if [[ -z "${TOOL_SHED_BINARY:-}" ]]; then
+      if refreshed_bin="$(download_runtime_binary 1 2>/dev/null)"; then
+        if go_binary_supports_runtime_flags "$refreshed_bin"; then
+          exec "$refreshed_bin" --runtime go --backend "$backend" uninstall "${passthrough[@]}"
+        fi
+      fi
+    fi
+
     TOOL_SHED_RUNTIME=go TOOL_SHED_BACKEND="$backend" exec "$bin" uninstall "${passthrough[@]}"
   fi
   echo "Go runtime requested but no tool-shed binary found; falling back to shell runtime." >&2
